@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Copyright (c) 2023 Rumbledethumps
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -5,8 +7,15 @@
 
 # Control RP6502 RIA via UART
 
-import sys,io,time,subprocess,serial,binascii
+import os
+import io
+import re
+import time
+import serial
+import binascii
+import argparse
 from typing import Union
+
 
 class Monitor:
     DEFAULT_TIMEOUT = 0.5
@@ -34,7 +43,7 @@ class Monitor:
         self.serial.write(b'RESET\r')
         self.serial.read_until()
 
-    def binary(self, addr:int, data):
+    def binary(self, addr: int, data):
         ''' Send data to memory using BINARY command. '''
         command = f'BINARY ${addr:04X} ${len(data):03X} ${binascii.crc32(data):08X}\r'
         self.serial.write(bytes(command, 'utf-8'))
@@ -57,7 +66,7 @@ class Monitor:
         self.serial.write(b'END\r')
         self.wait_for_prompt(']')
 
-    def send_reset_vector(self, addr:Union[int, None]=None):
+    def send_reset_vector(self, addr: Union[int, None] = None):
         ''' Set reset vector. Use start address of last file as default. '''
         if addr == None:
             addr = self.reset_vector_guess
@@ -65,10 +74,10 @@ class Monitor:
             raise RuntimeError("Reset vector not set")
         self.binary(0xFFFC, bytearray([addr & 0xFF, addr >> 8]))
 
-    def send_file_to_memory(self, name, addr:Union[int, None]=None):
+    def send_file_to_memory(self, name, addr: Union[int, None] = None):
         ''' Send binary file. addr=None uses first two bytes as address.'''
         with open(name, 'rb') as f:
-            if addr==None:
+            if addr == None:
                 data = f.read(2)
                 addr = data[0] + data[1] * 256
             self.reset_vector_guess = addr
@@ -104,7 +113,7 @@ class Monitor:
         start = time.monotonic()
         while True:
             r = self.serial.read()
-            if r == b'\x00': # huh, zeros?
+            if r == b'\x00':  # huh, zeros?
                 continue
             if r == b'0':
                 break
@@ -144,12 +153,12 @@ class ROM:
         self.out.write(bytes(command, 'utf-8'))
         self.out.write(data)
 
-    def binary_file(self, name, addr: Union[int, None]=None):
+    def binary_file(self, name, addr: Union[int, None] = None):
         ''' Binary memory data from file. addr=None uses first two bytes as address.'''
         with open(name, 'rb') as f:
             data = f.read()
         pos = 0
-        if addr==None:
+        if addr == None:
             pos += 2
             addr = data[0] + data[1] * 256
         self.reset_vector_guess = addr
@@ -161,7 +170,7 @@ class ROM:
             addr += size
             pos += size
 
-    def reset_vector(self, addr: Union[int, None]=None):
+    def reset_vector(self, addr: Union[int, None] = None):
         ''' Set reset vector. Use start address of last file as default. '''
         if addr == None:
             addr = self.reset_vector_guess
@@ -169,8 +178,53 @@ class ROM:
             raise RuntimeError("Reset vector not set")
         self.binary(0xFFFC, bytearray([addr & 0xFF, addr >> 8]))
 
-def run(args) -> subprocess.CompletedProcess:
-    ''' Run a system process. For example, a compiler. '''
-    cp = subprocess.run(args)
-    if cp.returncode != 0:
-        sys.exit(cp.returncode)
+
+def exec_args():
+    parser = argparse.ArgumentParser(
+        description='Control RP6502 RIA via UART.')
+    parser.add_argument('command', choices=['run', 'upload'],
+                        help='Run sends to memory. Upload writes a ROM file.')
+    parser.add_argument('filename',
+                        help='Raw binary file. e.g. build/hello')
+    parser.add_argument('-o', dest='out', metavar='name',
+                        help='Upload destination path/filename.')
+    parser.add_argument('-D', '--device', dest='device', metavar='dev',
+                        default='/dev/ttyACM0',
+                        help='Serial device name. Default=/dev/ttyACM0')
+    parser.add_argument('-a', '--address', dest='address', metavar='addr',
+                        help='Starting address of file. If not provided, '
+                        'the first two bytes of the file are used.')
+    parser.add_argument('-r', '--reset', dest='reset', metavar='addr',
+                        help='Reset vector. If not provided, '
+                        'the file starting address is used.')
+    args = parser.parse_args()
+
+    # Allow $ hex format.
+    if (args.address):
+        address = re.sub('^\$', '0x', args.address)
+        if (re.match('^($|0x|)[0-9A-Fa-f]*$', address)):
+            address = eval(address)
+        else:
+            parser.error(
+                "argument -a/--address: invalid value: '%s'" % args.address)
+        args.address = address
+
+    mon = Monitor(args.device)
+    mon.send_break()
+
+    if (args.command == 'run'):
+        mon.send_file_to_memory(args.filename, args.address)
+        mon.send_reset_vector(args.reset)
+        mon.reset()
+
+    # TODO Support including a comment file
+    if (args.command == 'upload'):
+        rom = ROM()
+        rom.binary_file(args.filename, args.address)
+        rom.reset_vector(args.reset)
+        mon.upload(args.out or os.path.basename(args.filename), rom)
+
+
+# This file may be included or run like a program.
+if __name__ == "__main__":
+    exec_args()
