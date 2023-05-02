@@ -25,8 +25,8 @@ RIA_ADDR1       := $FFEA
 
 ; RIA OS fastcall
 RIA_ERRNO       := $FFED
-RIA_A           := $FFF4
-RIA_X           := $FFF6
+RIA_A           := $FFF6
+RIA_X           := $FFF4
 RIA_SREG        := $FFF8
 RIA_VSTACK      := $FFEC
 RIA_OP          := $FFEF

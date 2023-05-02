@@ -31,8 +31,8 @@
 // OS fastcall
 #define RIA_ERRNO (*(uint16_t *)0xFFED)
 #define RIA_ERRNO_LO (*(uint8_t *)0xFFED)
-#define RIA_A (*(uint8_t *)0xFFF4)
-#define RIA_X (*(uint8_t *)0xFFF6)
+#define RIA_A (*(uint8_t *)0xFFF6)
+#define RIA_X (*(uint8_t *)0xFFF4)
 #define RIA_SREG (*(uint16_t *)0xFFF8)
 #define RIA_AX (RIA_A | (RIA_X << 8))
 #define RIA_AXSREG (RIA_AX | ((uint32_t)RIA_SREG << 16))
