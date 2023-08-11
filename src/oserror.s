@@ -3,7 +3,9 @@
 ; 2022, ChaN
 ; 2023, Rumbledethumps
 ;
+; Being over 20 years old doesn't make CC65 stable.
 ; int __fastcall__ _osmaperrno (unsigned char oserror);
+; int __fastcall__ __osmaperrno (unsigned char oserror);
 ; /* Map a system-specific error into a system-independent code. */
 ;
 
@@ -12,6 +14,7 @@
 .code
 
 __osmaperrno:
+___osmaperrno:
         ldx     #ErrTabSize
 @L1:    cmp     ErrTab-2,x      ; Search for the error code
         beq     @L2             ; Jump if found
