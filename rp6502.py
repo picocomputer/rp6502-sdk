@@ -14,22 +14,30 @@ import time
 import serial
 import binascii
 import argparse
+import platform
 from typing import Union
 
 
 class Monitor:
     DEFAULT_TIMEOUT = 0.5
+    UART_BAUDRATE = 115200
     serial = serial.Serial()
 
     def __init__(self, name, timeout=DEFAULT_TIMEOUT):
         self.serial.setPort(name)
         self.serial.timeout = timeout
+        self.serial.baudrate = self.UART_BAUDRATE
         self.serial.open()
 
     def send_break(self, duration=0.01):
         ''' Stop the 6502 and return to monitor. '''
         self.serial.read_all()
-        self.serial.send_break(duration)
+        if platform.system() == "Darwin":
+            self.serial.baudrate = 1200
+            self.serial.write(b'\0')
+            self.serial.baudrate = self.UART_BAUDRATE
+        else:
+            self.serial.send_break(duration)
         self.wait_for_prompt(']')
 
     def command(self, str, timeout=DEFAULT_TIMEOUT):
