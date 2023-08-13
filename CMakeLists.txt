@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: Unlicense
 #
 
-if(DEFINED ENV{CC65_INCLUDE})
-    set(CC65_INCLUDE $ENV{CC65_INCLUDE})
+if(DEFINED ENV{CC65_HOME})
+    set(CC65_INCLUDE "$ENV{CC65_HOME}/include")
 else()
     set(CC65_INCLUDE "/usr/share/cc65/include")
 endif()
