@@ -18,6 +18,9 @@
 #define RIA_RX_READY (*(uint8_t *)0xFFE0 & 0x40)
 #define RIA_RX (*(uint8_t *)0xFFE2)
 
+// VSYNC from PIX VGA
+#define RIA_VSYNC (*(uint8_t *)0xFFE3)
+
 // VRAM portal 0
 #define RIA_RW0 (*(uint8_t *)0xFFE4)
 #define RIA_STEP0 (*(int8_t *)0xFFE5)
