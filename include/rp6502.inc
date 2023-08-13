@@ -8,6 +8,9 @@ IRQVec          := $FFFA
 BRKVec          := $FFFC
 NMIVec          := $FFFE
 
+; VSYNC from PIX VGA
+RIA_VSYNC       := $FFE3
+
 ; RIA UART
 RIA_READY       := $FFE0 ; TX=$80 RX=$40
 RIA_TX          := $FFE1
