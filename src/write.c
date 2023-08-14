@@ -37,7 +37,6 @@ int __fastcall__ writex(vram_ptr buf, unsigned count, int fildes)
     RIA_VSTACK = buf & 0xFF;
     RIA_VSTACK = ((unsigned char *)&count)[1];
     RIA_VSTACK = ((unsigned char *)&count)[0];
-    RIA_ADDR0 = buf;
     RIA_CALL_AX(RIA_OP_WRITEV, fildes);
     RIA_BLOCK();
     ax = RIA_AX;
