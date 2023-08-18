@@ -8,6 +8,9 @@
 #ifndef _RP6502_H_
 #define _RP6502_H_
 
+#include <_6522.h>
+#define VIA (*(volatile struct __6522 *)0xFFD0)
+
 // RP6502 RIA $FFE0-$FFF9
 
 #include <stdint.h>
