@@ -85,10 +85,11 @@
 #define RIA_OP_PHI2 0x11
 #define RIA_OP_CODEPAGE 0x12
 #define RIA_OP_RAND 0x13
-#define RIA_OP_READ_RTC 0x14
-#define RIA_OP_WRITE_RTC 0x15
+#define RIA_OP_GET_RTC 0x14
+#define RIA_OP_SET_RTC 0x15
 
 typedef uint16_t vram_ptr;
+
 typedef struct {
     int16_t year;    ///< 0..4095
     int8_t month;    ///< 1..12, 1 is January
@@ -110,7 +111,7 @@ unsigned __fastcall__ phi2(void);
 unsigned __fastcall__ codepage(void);
 unsigned long __fastcall__ rand32(void);
 unsigned __fastcall__ rand16(void);
-int __fastcall__ read_rtc_time(void *buf);
-int __fastcall__ write_rtc_time(const void *buf);
+int __fastcall__ get_rtc_time(datetime_t *datetime);
+int __fastcall__ set_rtc_time(const datetime_t *datetime);
 
 #endif /* _RP6502_H_ */

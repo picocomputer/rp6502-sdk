@@ -29,4 +29,5 @@ target_sources(rp6502 PUBLIC
     src/read.c
     src/write.c
     src/randomize.c
+    src/rtc.c
 )

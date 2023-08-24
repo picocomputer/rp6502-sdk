@@ -1,28 +1,35 @@
 #include "rp6502.h"
+#include <errno.h>
+#include <stdio.h>
 
-int __fastcall__ read_rtc_time(void * buf)
+int __fastcall__ get_rtc_time(datetime_t *datetime)
 {
+    uint8_t *ptr;
     unsigned i;
-    int ax, total = 0;
-    RIA_OP = RIA_OP_READ_RTC;
+    int ax;
+    uint8_t count = sizeof(datetime_t);
+    RIA_OP = RIA_OP_GET_RTC;
     RIA_BLOCK();
+    ptr = (uint8_t *)datetime;
     ax = RIA_AX;
     if (ax < 0)
         return _mappederrno(RIA_ERRNO_LO);
-    for (i = 0; i < ax; i++)
-        ((char *)buf)[total + i] = RIA_VSTACK;
+    for (i = 0; i < count; i++)
+        *ptr++ = RIA_VSTACK;
     return ax;
 
 }
 
-int __fastcall__ write_rtc_time(const void *buf)
+int __fastcall__ set_rtc_time(const datetime_t *datetime)
 {
-    unsigned i;
-    int ax, total = 0;
-    int block = 8;
-    for (i = block; i;)
-        RIA_VSTACK = ((char *)buf)[total + --i];
-    RIA_OP = RIA_OP_WRITE_RTC;
+    const uint8_t *ptr;
+    uint8_t i;
+    int ax;
+    uint8_t count = sizeof(datetime_t);
+    ptr = ((uint8_t *)datetime) + count - 1;
+    for (i = 0;i < count; ++i)
+        RIA_VSTACK = (char *)*ptr--;
+    RIA_OP = RIA_OP_SET_RTC;
     RIA_BLOCK();
     ax = RIA_AX;
     if (ax < 0)
