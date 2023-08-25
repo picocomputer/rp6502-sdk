@@ -28,8 +28,8 @@ int __fastcall__ set_rtc_time(const datetime_t *datetime)
     uint8_t count = sizeof(datetime_t);
     ptr = ((uint8_t *)datetime) + count - 1;
     for (i = 0;i < count; ++i)
-        RIA_VSTACK = (char *)*ptr--;
-    RIA_OP = RIA_OP_SET_RTC;
+        RIA_VSTACK = (uint8_t *)*ptr--;
+    RIA_CALL_A(RIA_OP_SET_RTC, count);
     RIA_BLOCK();
     ax = RIA_AX;
     if (ax < 0)
