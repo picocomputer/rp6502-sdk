@@ -8,44 +8,36 @@
 #include "rp6502.h"
 #include <errno.h>
 
-int __fastcall__ write_(const void *buf, unsigned count, int fildes)
+int __fastcall__ write(int fd, const void *buf, unsigned count)
 {
-    unsigned i;
     int ax, total = 0;
     while (count)
     {
-        int block = (count > 256) ? 256 : count;
-        for (i = block; i;)
-            RIA.xstack = ((char *)buf)[total + --i];
-        RIA_CALL_AX(RIA_OP_WRITE, fildes);
-        RIA_BLOCK();
-        ax = RIA_AX;
+        int blockcount = (count > 256) ? 256 : count;
+        ax = write_(&((char *)buf)[total], blockcount, fd);
         if (ax < 0)
-            return _mappederrno(RIA.errno_lo);
+            return ax;
         total += ax;
         count -= ax;
-        if (ax < block)
+        if (ax < blockcount)
             break;
     }
     return total;
 }
 
-int __fastcall__ writex(vram_ptr buf, unsigned count, int fildes)
+int __fastcall__ write_(const void *buf, unsigned count, int fildes)
 {
-    int ax;
+    unsigned i;
+    for (i = count; i;)
+        RIA.xstack = ((char *)buf)[--i];
+    return ria_call_ax(RIA_OP_WRITE, fildes);
+}
+
+int __fastcall__ writex(xram_addr buf, unsigned count, int fildes)
+{
     RIA.xstack = buf >> 8;
     RIA.xstack = buf & 0xFF;
     RIA.xstack = ((unsigned char *)&count)[1];
     RIA.xstack = ((unsigned char *)&count)[0];
-    RIA_CALL_AX(RIA_OP_WRITEX, fildes);
-    RIA_BLOCK();
-    ax = RIA_AX;
-    if (ax < 0)
-        return _mappederrno(RIA.errno_lo);
-    return RIA_AX;
-}
-
-int __fastcall__ write(int fd, const void *buf, unsigned count)
-{
-    return write_(buf, count, fd);
+    return ria_call_ax(RIA_OP_WRITEX, fildes);
 }

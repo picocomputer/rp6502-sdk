@@ -4,9 +4,9 @@
 ; SPDX-License-Identifier: Unlicense
 
 ; 6502 Vectors
-IRQVec          := $FFFA
-BRKVec          := $FFFC
-NMIVec          := $FFFE
+CPU_IRQ_VECTOR  := $FFFA
+CPU_BRK_VECTOR  := $FFFC
+CPU_NMI_VECTOR  := $FFFE
 
 ; VSYNC from PIX VGA
 RIA_VSYNC       := $FFE3
@@ -33,6 +33,7 @@ RIA_X           := $FFF4
 RIA_SREG        := $FFF8
 RIA_XSTACK      := $FFEC
 RIA_OP          := $FFEF
+RIA_WAIT        := $FFF1
 RIA_BUSY        := $FFF2 ; Bit $80
 
 ; 6522 VIA
