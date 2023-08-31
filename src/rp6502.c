@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: Unlicense
  */
 
-#include "rp6502.h"
+#include <rp6502.h>
 
 void __fastcall__ xreg(unsigned value, unsigned reg, int devid)
 {
@@ -13,34 +13,25 @@ void __fastcall__ xreg(unsigned value, unsigned reg, int devid)
     RIA.xstack = ((unsigned char *)&value)[0];
     RIA.xstack = ((unsigned char *)&reg)[1];
     RIA.xstack = ((unsigned char *)&reg)[0];
-    RIA_CALL_A(RIA_OP_XREG, devid);
-    RIA_BLOCK();
+    ria_call_a(RIA_OP_XREG, devid);
 }
 
 unsigned __fastcall__ phi2(void)
 {
-    RIA_CALL(RIA_OP_PHI2);
-    RIA_BLOCK();
-    return RIA_AX;
+    return ria_call(RIA_OP_PHI2);
 }
 
 unsigned __fastcall__ codepage(void)
 {
-    RIA_CALL(RIA_OP_CODEPAGE);
-    RIA_BLOCK();
-    return RIA_AX;
+    return ria_call(RIA_OP_CODEPAGE);
 }
 
 unsigned long __fastcall__ rand32(void)
 {
-    RIA_CALL(RIA_OP_RAND);
-    RIA_BLOCK();
-    return RIA_AXSREG;
+    return ria_long(RIA_OP_RAND);
 }
 
 unsigned __fastcall__ rand16(void)
 {
-    RIA_CALL(RIA_OP_RAND);
-    RIA_BLOCK();
-    return RIA_AX;
+    return ria_call(RIA_OP_RAND);
 }

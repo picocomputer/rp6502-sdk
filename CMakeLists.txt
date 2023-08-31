@@ -19,6 +19,7 @@ target_include_directories(rp6502 PUBLIC
 target_sources(rp6502 PUBLIC
     src/crt0.s
     src/rp6502.c
+    src/ria.s
     src/close.c
     src/initenv.s
     src/lseek.c

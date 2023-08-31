@@ -8,8 +8,6 @@
 #ifndef _RP6502_H_
 #define _RP6502_H_
 
-#include <stdint.h>
-
 // RP6502 VIA $FFD0-$FFDF
 #include <_6522.h>
 #define VIA (*(volatile struct __6522 *)0xFFD0)
@@ -47,38 +45,19 @@ struct __RP6502
 #define RIA_READY_RX_BIT 0x40
 #define RIA_BUSY_BIT 0x80
 
-#define RIA_AX (RIA.a | (RIA.x << 8))
-#define RIA_AXSREG (RIA_AX | ((uint32_t)RIA.sreg << 16))
-// #define RIA_XSTACK (*(uint8_t *)0xFFEC)
+/* Run an OS operation with optional a/x/sreg argument.
+ * These will call _mappederrno() on error.
+ */
 
-// Call an OS function
-#define RIA_CALL(OP) \
-    {                \
-        RIA.op = OP; \
-    }
-#define RIA_CALL_A(OP, A) \
-    {                     \
-        RIA.a = A;        \
-        RIA.op = OP;      \
-    }
-#define RIA_CALL_AX(OP, AX) \
-    {                       \
-        RIA.a = AX & 0xFF;  \
-        RIA.x = AX >> 8;    \
-        RIA.op = OP;        \
-    }
-#define RIA_CALL_AXSREG(OP, AXSREG) \
-    {                               \
-        RIA.a = AXSREG & 0xFF;      \
-        RIA.x = AXSREG >> 8;        \
-        RIA.sreg = AXSREG >> 16;    \
-        RIA.op = OP;                \
-    }
+int __fastcall__ ria_call(unsigned char op);
+int __fastcall__ ria_call_axsreg(unsigned char op, unsigned long axsreg);
+int __fastcall__ ria_call_ax(unsigned char op, unsigned int ax);
+int __fastcall__ ria_call_a(unsigned char op, unsigned char a);
 
-// Block on completion of OS function.
-#define RIA_BLOCK()                 \
-    while (RIA.busy & RIA_BUSY_BIT) \
-        ;
+long __fastcall__ ria_long(unsigned char op);
+long __fastcall__ ria_long_axsreg(unsigned char op, unsigned long axsreg);
+long __fastcall__ ria_long_ax(unsigned char op, unsigned int ax);
+long __fastcall__ ria_long_a(unsigned char op, unsigned char a);
 
 #define RIA_OP_EXIT 0xFF
 #define RIA_OP_ZXSTACK 0x00
@@ -94,12 +73,27 @@ struct __RP6502
 #define RIA_OP_CODEPAGE 0x12
 #define RIA_OP_RAND 0x13
 
-typedef uint16_t vram_ptr;
+/* C API for the operating system.
+ * The commented functions are declared in CC65.
+ * The CC65 functions are very close to POSIX and
+ * we try to make our API work directly with them.
+ * It can't be done in some cases. For example, read_() from
+ * the OS can only transfer 256 bytes on the xstack so read()
+ * is a wrapper that breaks up large transfers.
+ */
+
+// int __cdecl__ open(const char *name, int flags, ...);
+// int __fastcall__ close(int fd);
+// int __fastcall__ read_(void *buf, unsigned count, int fildes);
+// int __fastcall__ write(int fd, const void *buf, unsigned count);
+// off_t __fastcall__ lseek(int fd, off_t offset, int whence);
+
+typedef unsigned xram_addr;
 
 int __fastcall__ read_(void *buf, unsigned count, int fildes);
-int __fastcall__ readx(vram_ptr buf, unsigned count, int fildes);
+int __fastcall__ readx(xram_addr buf, unsigned count, int fildes);
 int __fastcall__ write_(const void *buf, unsigned count, int fildes);
-int __fastcall__ writex(vram_ptr buf, unsigned count, int fildes);
+int __fastcall__ writex(xram_addr buf, unsigned count, int fildes);
 long __fastcall__ lseek32(long offset, char whence, int fildes);
 long __fastcall__ lseek16(int offset, char whence, int fildes);
 void __fastcall__ xreg(unsigned value, unsigned reg, int devid);

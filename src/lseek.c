@@ -12,32 +12,20 @@
 
 long __fastcall__ lseek32(long offset, char whence, int fildes)
 {
-    long axsreg;
     RIA.xstack = ((unsigned char *)&offset)[3];
     RIA.xstack = ((unsigned char *)&offset)[2];
     RIA.xstack = ((unsigned char *)&offset)[1];
     RIA.xstack = ((unsigned char *)&offset)[0];
     RIA.xstack = whence;
-    RIA_CALL_AX(RIA_OP_LSEEK, fildes);
-    RIA_BLOCK();
-    axsreg = RIA_AXSREG;
-    if (axsreg < 0)
-        return _mappederrno(RIA.errno_lo);
-    return axsreg;
+    return ria_long_ax(RIA_OP_LSEEK, fildes);
 }
 
 long __fastcall__ lseek16(int offset, char whence, int fildes)
 {
-    long axsreg;
     RIA.xstack = ((unsigned char *)&offset)[1];
     RIA.xstack = ((unsigned char *)&offset)[0];
     RIA.xstack = whence;
-    RIA_CALL_AX(RIA_OP_LSEEK, fildes);
-    RIA_BLOCK();
-    axsreg = RIA_AXSREG;
-    if (axsreg < 0)
-        return _mappederrno(RIA.errno_lo);
-    return axsreg;
+    return ria_long_ax(RIA_OP_LSEEK, fildes);
 }
 
 off_t __fastcall__ lseek(int fd, off_t offset, int whence)
