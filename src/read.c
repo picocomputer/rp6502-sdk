@@ -1,46 +1,49 @@
-#include "rp6502.h"
-#include "errno.h"
+#include <rp6502.h>
+#include <errno.h>
 
 int __fastcall__ read_(void *buf, unsigned count, int fildes)
 {
-    unsigned i;
+    int i, ax;
+    RIA.xstack = ((unsigned char *)&count)[1];
+    RIA.xstack = ((unsigned char *)&count)[0];
+    RIA_CALL_AX(RIA_OP_READ, fildes);
+    RIA_BLOCK();
+    ax = RIA_AX;
+    if (ax < 0)
+        return _mappederrno(RIA.errno_lo);
+    for (i = 0; i < ax; i++)
+        ((char *)buf)[i] = RIA.xstack;
+    return ax;
+}
+
+int __fastcall__ read(int fd, void *buf, unsigned count)
+{
     int ax, total = 0;
     while (count)
     {
-        int block = (count > 256) ? 256 : count;
-        RIA_VSTACK = ((unsigned char *)&block)[1];
-        RIA_VSTACK = ((unsigned char *)&block)[0];
-        RIA_CALL_AX(RIA_OP_READ, fildes);
-        RIA_BLOCK();
-        ax = RIA_AX;
+        int blockcount = (count > 256) ? 256 : count;
+        ax = read_(&((char *)buf)[total], blockcount, fd);
         if (ax < 0)
-            return _mappederrno(RIA_ERRNO_LO);
-        for (i = 0; i < ax; i++)
-            ((char *)buf)[total + i] = RIA_VSTACK;
+            return _mappederrno(RIA.errno_lo);
         total += ax;
         count -= ax;
-        if (ax < block)
+        if (ax < blockcount)
             break;
     }
     return total;
 }
 
-int __fastcall__ read(int fd, void *buf, unsigned count)
-{
-    return read_(buf, count, fd);
-}
-
 int __fastcall__ readx(vram_ptr buf, unsigned count, int fildes)
 {
     int ax;
-    RIA_VSTACK = buf >> 8;
-    RIA_VSTACK = buf & 0xFF;
-    RIA_VSTACK = ((unsigned char *)&count)[1];
-    RIA_VSTACK = ((unsigned char *)&count)[0];
-    RIA_CALL_AX(RIA_OP_READV, fildes);
+    RIA.xstack = buf >> 8;
+    RIA.xstack = buf & 0xFF;
+    RIA.xstack = ((unsigned char *)&count)[1];
+    RIA.xstack = ((unsigned char *)&count)[0];
+    RIA_CALL_AX(RIA_OP_READX, fildes);
     RIA_BLOCK();
     ax = RIA_AX;
     if (ax < 0)
-        return _mappederrno(RIA_ERRNO_LO);
+        return _mappederrno(RIA.errno_lo);
     return RIA_AX;
 }

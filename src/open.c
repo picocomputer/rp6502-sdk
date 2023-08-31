@@ -22,11 +22,11 @@ int open(const char *name, int flags, ...)
         return -1;
     }
     for (i = namelen; i;)
-        RIA_VSTACK = name[--i];
+        RIA.xstack = name[--i];
     RIA_CALL_AX(RIA_OP_OPEN, flags);
     RIA_BLOCK();
     ax = RIA_AX;
     if (ax < 0)
-        _mappederrno(RIA_ERRNO_LO);
+        _mappederrno(RIA.errno_lo);
     return RIA_AX;
 }
