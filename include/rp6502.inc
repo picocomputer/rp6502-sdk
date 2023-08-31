@@ -16,12 +16,12 @@ RIA_READY       := $FFE0 ; TX=$80 RX=$40
 RIA_TX          := $FFE1
 RIA_RX          := $FFE2
 
-; RIA VRAM portal 0
+; RIA XRAM portal 0
 RIA_RW0         := $FFE4
 RIA_STEP0       := $FFE5
 RIA_ADDR0       := $FFE6
 
-; RIA VRAM portal 1
+; RIA XRAM portal 1
 RIA_RW1         := $FFE8
 RIA_STEP1       := $FFE9
 RIA_ADDR1       := $FFEA
@@ -31,7 +31,7 @@ RIA_ERRNO       := $FFED
 RIA_A           := $FFF6
 RIA_X           := $FFF4
 RIA_SREG        := $FFF8
-RIA_VSTACK      := $FFEC
+RIA_XSTACK      := $FFEC
 RIA_OP          := $FFEF
 RIA_BUSY        := $FFF2 ; Bit $80
 

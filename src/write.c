@@ -16,12 +16,12 @@ int __fastcall__ write_(const void *buf, unsigned count, int fildes)
     {
         int block = (count > 256) ? 256 : count;
         for (i = block; i;)
-            RIA_VSTACK = ((char *)buf)[total + --i];
+            RIA.xstack = ((char *)buf)[total + --i];
         RIA_CALL_AX(RIA_OP_WRITE, fildes);
         RIA_BLOCK();
         ax = RIA_AX;
         if (ax < 0)
-            return _mappederrno(RIA_ERRNO_LO);
+            return _mappederrno(RIA.errno_lo);
         total += ax;
         count -= ax;
         if (ax < block)
@@ -33,15 +33,15 @@ int __fastcall__ write_(const void *buf, unsigned count, int fildes)
 int __fastcall__ writex(vram_ptr buf, unsigned count, int fildes)
 {
     int ax;
-    RIA_VSTACK = buf >> 8;
-    RIA_VSTACK = buf & 0xFF;
-    RIA_VSTACK = ((unsigned char *)&count)[1];
-    RIA_VSTACK = ((unsigned char *)&count)[0];
-    RIA_CALL_AX(RIA_OP_WRITEV, fildes);
+    RIA.xstack = buf >> 8;
+    RIA.xstack = buf & 0xFF;
+    RIA.xstack = ((unsigned char *)&count)[1];
+    RIA.xstack = ((unsigned char *)&count)[0];
+    RIA_CALL_AX(RIA_OP_WRITEX, fildes);
     RIA_BLOCK();
     ax = RIA_AX;
     if (ax < 0)
-        return _mappederrno(RIA_ERRNO_LO);
+        return _mappederrno(RIA.errno_lo);
     return RIA_AX;
 }
 

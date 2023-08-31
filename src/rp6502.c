@@ -9,10 +9,10 @@
 
 void __fastcall__ xreg(unsigned value, unsigned reg, int devid)
 {
-    RIA_VSTACK = ((unsigned char *)&value)[1];
-    RIA_VSTACK = ((unsigned char *)&value)[0];
-    RIA_VSTACK = ((unsigned char *)&reg)[1];
-    RIA_VSTACK = ((unsigned char *)&reg)[0];
+    RIA.xstack = ((unsigned char *)&value)[1];
+    RIA.xstack = ((unsigned char *)&value)[0];
+    RIA.xstack = ((unsigned char *)&reg)[1];
+    RIA.xstack = ((unsigned char *)&reg)[0];
     RIA_CALL_A(RIA_OP_XREG, devid);
     RIA_BLOCK();
 }
