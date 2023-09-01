@@ -8,11 +8,13 @@
 #ifndef _RP6502_H_
 #define _RP6502_H_
 
-// RP6502 VIA $FFD0-$FFDF
+/* RP6502 VIA $FFD0-$FFDF */
+
 #include <_6522.h>
 #define VIA (*(volatile struct __6522 *)0xFFD0)
 
-// RP6502 RIA $FFE0-$FFF9
+/* RP6502 RIA $FFE0-$FFF9 */
+
 struct __RP6502
 {
     const unsigned char ready;
@@ -45,19 +47,33 @@ struct __RP6502
 #define RIA_READY_RX_BIT 0x40
 #define RIA_BUSY_BIT 0x80
 
-/* Run an OS operation with optional a/x/sreg argument.
- * These will call _mappederrno() on error.
- */
+/* XSTACK helpers */
 
-int __fastcall__ ria_call(unsigned char op);
-int __fastcall__ ria_call_axsreg(unsigned char op, unsigned long axsreg);
-int __fastcall__ ria_call_ax(unsigned char op, unsigned int ax);
-int __fastcall__ ria_call_a(unsigned char op, unsigned char a);
+void __fastcall__ ria_push_long(unsigned long val);
+void __fastcall__ ria_push_int(unsigned int val);
+#define ria_push_char(v) RIA.xstack = v
 
-long __fastcall__ ria_long(unsigned char op);
-long __fastcall__ ria_long_axsreg(unsigned char op, unsigned long axsreg);
-long __fastcall__ ria_long_ax(unsigned char op, unsigned int ax);
-long __fastcall__ ria_long_a(unsigned char op, unsigned char a);
+long __fastcall__ ria_pop_long(void);
+int __fastcall__ ria_pop_int(void);
+#define ria_pop_char() RIA.xstack
+
+/* Set the RIA fastcall register */
+
+void __fastcall__ ria_set_axsreg(unsigned long axsreg);
+void __fastcall__ ria_set_ax(unsigned int ax);
+#define ria_set_a(v) RIA.a = v
+
+/* Run an OS operation */
+
+int __fastcall__ ria_call_int(unsigned char op);
+long __fastcall__ ria_call_long(unsigned char op);
+
+/* These run _mappederrno() on error */
+
+int __fastcall__ ria_call_int_errno(unsigned char op);
+long __fastcall__ ria_call_long_errno(unsigned char op);
+
+/* OS operation numbers */
 
 #define RIA_OP_EXIT 0xFF
 #define RIA_OP_ZXSTACK 0x00

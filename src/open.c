@@ -21,6 +21,7 @@ int __cdecl__ open(const char *name, int flags, ...)
         return -1;
     }
     for (i = namelen; i;)
-        RIA.xstack = name[--i];
-    return ria_call_ax(RIA_OP_OPEN, flags);
+        ria_push_char(name[--i]);
+    ria_set_ax(flags);
+    return ria_call_int_errno(RIA_OP_OPEN);
 }

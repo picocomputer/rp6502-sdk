@@ -29,15 +29,15 @@ int __fastcall__ write_(const void *buf, unsigned count, int fildes)
 {
     unsigned i;
     for (i = count; i;)
-        RIA.xstack = ((char *)buf)[--i];
-    return ria_call_ax(RIA_OP_WRITE, fildes);
+        ria_push_char(((char *)buf)[--i]);
+    ria_set_ax(fildes);
+    return ria_call_int_errno(RIA_OP_WRITE);
 }
 
 int __fastcall__ writex(xram_addr buf, unsigned count, int fildes)
 {
-    RIA.xstack = buf >> 8;
-    RIA.xstack = buf & 0xFF;
-    RIA.xstack = ((unsigned char *)&count)[1];
-    RIA.xstack = ((unsigned char *)&count)[0];
-    return ria_call_ax(RIA_OP_WRITEX, fildes);
+    ria_push_int(buf);
+    ria_push_int(count);
+    ria_set_ax(fildes);
+    return ria_call_int_errno(RIA_OP_WRITEX);
 }
