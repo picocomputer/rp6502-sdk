@@ -21,19 +21,18 @@ int __fastcall__ read(int fd, void *buf, unsigned count)
 int __fastcall__ read_(void *buf, unsigned count, int fildes)
 {
     int i, ax;
-    RIA.xstack = ((unsigned char *)&count)[1];
-    RIA.xstack = ((unsigned char *)&count)[0];
-    ax = ria_call_ax(RIA_OP_READ, fildes);
+    ria_push_int(count);
+    ria_set_ax(fildes);
+    ax = ria_call_int_errno(RIA_OP_READ);
     for (i = 0; i < ax; i++)
-        ((char *)buf)[i] = RIA.xstack;
+        ((char *)buf)[i] = ria_pop_char();
     return ax;
 }
 
 int __fastcall__ readx(xram_addr buf, unsigned count, int fildes)
 {
-    RIA.xstack = buf >> 8;
-    RIA.xstack = buf & 0xFF;
-    RIA.xstack = ((unsigned char *)&count)[1];
-    RIA.xstack = ((unsigned char *)&count)[0];
-    return ria_call_ax(RIA_OP_READX, fildes);
+    ria_push_int(buf);
+    ria_push_int(count);
+    ria_set_ax(fildes);
+    return ria_call_int_errno(RIA_OP_READX);
 }
