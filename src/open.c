@@ -13,15 +13,12 @@
 
 int __cdecl__ open(const char *name, int flags, ...)
 {
-    size_t namelen, i;
+    size_t namelen;
     namelen = strlen(name);
     if (namelen > 255)
-    {
-        _seterrno(EINVAL);
-        return -1;
-    }
-    for (i = namelen; i;)
-        ria_push_char(name[--i]);
+        return _mappederrno(EINVAL);
+    while (namelen)
+        ria_push_char(name[--namelen]);
     ria_set_ax(flags);
     return ria_call_int_errno(RIA_OP_OPEN);
 }

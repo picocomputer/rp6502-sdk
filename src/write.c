@@ -14,7 +14,7 @@ int __fastcall__ write(int fd, const void *buf, unsigned count)
     while (count)
     {
         int blockcount = (count > 256) ? 256 : count;
-        ax = write_(&((char *)buf)[total], blockcount, fd);
+        ax = write_xstack(&((char *)buf)[total], blockcount, fd);
         if (ax < 0)
             return ax;
         total += ax;
@@ -25,19 +25,19 @@ int __fastcall__ write(int fd, const void *buf, unsigned count)
     return total;
 }
 
-int __fastcall__ write_(const void *buf, unsigned count, int fildes)
+int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes)
 {
     unsigned i;
     for (i = count; i;)
         ria_push_char(((char *)buf)[--i]);
     ria_set_ax(fildes);
-    return ria_call_int_errno(RIA_OP_WRITE);
+    return ria_call_int_errno(RIA_OP_WRITE_XSTACK);
 }
 
-int __fastcall__ writex(xram_addr buf, unsigned count, int fildes)
+int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes)
 {
     ria_push_int(buf);
     ria_push_int(count);
     ria_set_ax(fildes);
-    return ria_call_int_errno(RIA_OP_WRITEX);
+    return ria_call_int_errno(RIA_OP_WRITE_XRAM);
 }
