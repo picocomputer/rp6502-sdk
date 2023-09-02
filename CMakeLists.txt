@@ -28,6 +28,7 @@ target_sources(rp6502 PUBLIC
     src/oserrlist.s
     src/oserror.s
     src/read.c
+    src/clock.c
     src/write.c
     src/randomize.c
 )

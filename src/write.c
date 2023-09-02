@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: Unlicense
  */
 
-#include "rp6502.h"
+#include <rp6502.h>
 #include <errno.h>
 
 int __fastcall__ write(int fd, const void *buf, unsigned count)

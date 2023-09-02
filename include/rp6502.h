@@ -77,6 +77,16 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 
 #define RIA_OP_EXIT 0xFF
 #define RIA_OP_ZXSTACK 0x00
+#define RIA_OP_XREG 0x10
+#define RIA_OP_PHI2 0x11
+#define RIA_OP_CODEPAGE 0x12
+#define RIA_OP_RAND 0x13
+
+#define RIA_OP_CLOCK_GETRES 0x20
+#define RIA_OP_CLOCK_GETTIME 0x21
+#define RIA_OP_CLOCK_SETTIME 0x22
+#define RIA_OP_CLOCK_GETTIMEZONE 0x23
+
 #define RIA_OP_OPEN 0x01
 #define RIA_OP_CLOSE 0x04
 #define RIA_OP_READ_XSTACK 0x05
@@ -84,20 +94,8 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 #define RIA_OP_WRITE_XSTACK 0x08
 #define RIA_OP_WRITE_XRAM 0x09
 #define RIA_OP_LSEEK 0x0B
-#define RIA_OP_XREG 0x10
-#define RIA_OP_PHI2 0x11
-#define RIA_OP_CODEPAGE 0x12
-#define RIA_OP_RAND 0x13
 
-/* C API for the operating system.
- * Commented functions are declared in CC65.
- */
-
-// int __cdecl__ open(const char *name, int flags, ...);
-// int __fastcall__ close(int fd);
-// int __fastcall__ read(int fd, void *buf, unsigned count)
-// int __fastcall__ write(int fd, const void *buf, unsigned count);
-// off_t __fastcall__ lseek(int fd, off_t offset, int whence);
+/* C API for the operating system. */
 
 typedef unsigned xram_addr;
 
@@ -112,6 +110,7 @@ unsigned long __fastcall__ ria_lrand(void);
 unsigned __fastcall__ ria_rand(void);
 
 /* Values in __oserror are the union of these FatFs errors and errno.h */
+
 typedef enum
 {
     FR_OK = 32,             /* Succeeded */
