@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 // Non-standard cc65
-void _randomize (void) {
-    srand(rand16());
+void _randomize(void)
+{
+    srand(ria_rand());
 }

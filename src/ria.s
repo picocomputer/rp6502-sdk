@@ -58,12 +58,12 @@ _ria_set_ax:
 ; int __fastcall__ ria_call_int(unsigned char op);
 _ria_call_int:
         sta RIA_OP
-        jmp RIA_WAIT
+        jmp RIA_SPIN
 
 ; long __fastcall__ ria_call_long(unsigned char op);
 _ria_call_long:
         sta RIA_OP
-        jsr RIA_WAIT
+        jsr RIA_SPIN
         ldy RIA_SREG
         sty sreg
         ldy RIA_SREG+1
@@ -73,8 +73,8 @@ _ria_call_long:
 ; int __fastcall__ ria_call_int_errno(unsigned char op);
 _ria_call_int_errno:
         sta RIA_OP
-        jsr RIA_WAIT
-        ldy RIA_X
+        jsr RIA_SPIN
+        ldx RIA_X
         bmi ERROR
         rts
 
