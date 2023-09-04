@@ -80,7 +80,7 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 #define RIA_OP_XREG 0x10
 #define RIA_OP_PHI2 0x11
 #define RIA_OP_CODEPAGE 0x12
-#define RIA_OP_RAND 0x13
+#define RIA_OP_LRAND 0x13
 
 #define RIA_OP_CLOCK_GETRES 0x20
 #define RIA_OP_CLOCK_GETTIME 0x21
@@ -106,8 +106,7 @@ int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes);
 void __fastcall__ ria_xreg(unsigned value, unsigned reg, int devid);
 unsigned __fastcall__ ria_phi2(void);
 unsigned __fastcall__ ria_codepage(void);
-unsigned long __fastcall__ ria_lrand(void);
-unsigned __fastcall__ ria_rand(void);
+unsigned long __fastcall__ lrand(void);
 
 /* Values in __oserror are the union of these FatFs errors and errno.h */
 

@@ -24,13 +24,3 @@ unsigned __fastcall__ ria_codepage(void)
 {
     return ria_call_int(RIA_OP_CODEPAGE);
 }
-
-unsigned long __fastcall__ ria_lrand(void)
-{
-    return ria_call_long(RIA_OP_RAND);
-}
-
-unsigned __fastcall__ ria_rand(void)
-{
-    return ria_call_int(RIA_OP_RAND);
-}

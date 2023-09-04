@@ -7,10 +7,8 @@
 ; int __fastcall__ _osmaperrno (unsigned char oserror);
 ; int __fastcall__ __osmaperrno (unsigned char oserror);
 ;
-; RP6502 will usually respond with CC65 errnos. If the error
-; comes from FatFs, this will map it to system-independent errnos.
-; The application can choose to be portable, or access the original
-; error sich as a ddisk utility would prefer to do.
+; RP6502 will respond with a union of CC65 and FatFs errnos.
+; This will map FatFs errors into the CC65 range for portable code.
 
 EFATFS_START := 32
 

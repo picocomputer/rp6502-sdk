@@ -7,9 +7,7 @@
 
 #include "rp6502.h"
 #include <errno.h>
-#include <fcntl.h>
 #include <string.h>
-#include <stddef.h>
 
 int __cdecl__ open(const char *name, int flags, ...)
 {

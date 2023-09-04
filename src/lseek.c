@@ -7,8 +7,6 @@
 
 #include "rp6502.h"
 #include <unistd.h>
-#include <stdio.h>
-#include "errno.h"
 
 off_t __fastcall__ lseek(int fd, off_t offset, int whence)
 {
