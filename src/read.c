@@ -1,13 +1,19 @@
-#include <rp6502.h>
-#include <errno.h>
+/*
+ * Copyright (c) 2023 Rumbledethumps
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-License-Identifier: Unlicense
+ */
 
-int __fastcall__ read(int fd, void *buf, unsigned count)
+#include <rp6502.h>
+
+int __fastcall__ read(int fildes, void *buf, unsigned count)
 {
     int ax, total = 0;
     while (count)
     {
         int blockcount = (count > 256) ? 256 : count;
-        ax = read_xstack(&((char *)buf)[total], blockcount, fd);
+        ax = read_xstack(&((char *)buf)[total], blockcount, fildes);
         if (ax < 0)
             return ax;
         total += ax;
@@ -16,23 +22,4 @@ int __fastcall__ read(int fd, void *buf, unsigned count)
             break;
     }
     return total;
-}
-
-int __fastcall__ read_xstack(void *buf, unsigned count, int fildes)
-{
-    int i, ax;
-    ria_push_int(count);
-    ria_set_ax(fildes);
-    ax = ria_call_int_errno(RIA_OP_READ_XSTACK);
-    for (i = 0; i < ax; i++)
-        ((char *)buf)[i] = ria_pop_char();
-    return ax;
-}
-
-int __fastcall__ read_xram(xram_addr buf, unsigned count, int fildes)
-{
-    ria_push_int(buf);
-    ria_push_int(count);
-    ria_set_ax(fildes);
-    return ria_call_int_errno(RIA_OP_READ_XRAM);
 }

@@ -22,13 +22,18 @@ target_sources(rp6502 PUBLIC
     src/ria.s
     src/close.c
     src/initenv.s
+    src/lrand.c
     src/lseek.c
     src/mainargs.s
     src/open.c
     src/oserrlist.s
     src/oserror.s
     src/read.c
+    src/read_xram.c
+    src/read_xstack.c
     src/clock.c
     src/write.c
+    src/write_xram.c
+    src/write_xstack.c
     src/randomize.c
 )

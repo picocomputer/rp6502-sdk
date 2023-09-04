@@ -6,10 +6,8 @@
  */
 
 #include <rp6502.h>
-#include <stdlib.h>
 
-// Non-standard cc65
-void _randomize(void)
+unsigned long __fastcall__ lrand(void)
 {
-    srand(ria_call_int(RIA_OP_LRAND));
+    return ria_call_long(RIA_OP_LRAND);
 }
