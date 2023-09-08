@@ -3,18 +3,13 @@
 ; SPDX-License-Identifier: BSD-3-Clause
 ; SPDX-License-Identifier: Unlicense
 
-; 6502 Vectors
-RIA_IRQ         := $FFFA
-RIA_BRK         := $FFFC
-RIA_NMI         := $FFFE
-
-; VSYNC from PIX VGA
-RIA_VSYNC       := $FFE3
-
 ; RIA UART
 RIA_READY       := $FFE0 ; TX=$80 RX=$40
 RIA_TX          := $FFE1
 RIA_RX          := $FFE2
+
+; VSYNC from PIX VGA
+RIA_VSYNC       := $FFE3
 
 ; RIA XRAM portal 0
 RIA_RW0         := $FFE4
@@ -27,14 +22,14 @@ RIA_STEP1       := $FFE9
 RIA_ADDR1       := $FFEA
 
 ; RIA OS fastcall
-RIA_ERRNO       := $FFED
-RIA_A           := $FFF4
-RIA_X           := $FFF6
-RIA_SREG        := $FFF8
 RIA_XSTACK      := $FFEC
+RIA_ERRNO       := $FFED
 RIA_OP          := $FFEF
 RIA_SPIN        := $FFF1
 RIA_BUSY        := $FFF2 ; Bit $80
+RIA_A           := $FFF4
+RIA_X           := $FFF6
+RIA_SREG        := $FFF8
 
 ; 6522 VIA
 VIA             := $FFD0        ; VIA base address
