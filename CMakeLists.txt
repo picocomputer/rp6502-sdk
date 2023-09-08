@@ -17,10 +17,9 @@ target_include_directories(rp6502 PUBLIC
     ${CC65_INCLUDE}
 )
 target_sources(rp6502 PUBLIC
-    src/crt0.s
-    src/rp6502.c
-    src/ria.s
+    src/clock.c
     src/close.c
+    src/crt0.s
     src/initenv.s
     src/lrand.c
     src/lseek.c
@@ -28,12 +27,14 @@ target_sources(rp6502 PUBLIC
     src/open.c
     src/oserrlist.s
     src/oserror.s
-    src/read.c
+    src/randomize.c
     src/read_xram.c
     src/read_xstack.c
-    src/clock.c
-    src/write.c
+    src/read.c
+    src/ria.s
+    src/rp6502.c
     src/write_xram.c
     src/write_xstack.c
-    src/randomize.c
+    src/write.c
+    src/xreg.s
 )
