@@ -31,6 +31,25 @@ RIA_A           := $FFF4
 RIA_X           := $FFF6
 RIA_SREG        := $FFF8
 
+; RIA OS operation numbers
+RIA_OP_EXIT               := $FF
+RIA_OP_ZXSTACK            := $00
+RIA_OP_XREG               := $10
+RIA_OP_PHI2               := $11
+RIA_OP_CODEPAGE           := $12
+RIA_OP_LRAND              := $13
+RIA_OP_CLOCK_GETRES       := $20
+RIA_OP_CLOCK_GETTIME      := $21
+RIA_OP_CLOCK_SETTIME      := $22
+RIA_OP_CLOCK_GETTIMEZONE  := $23
+RIA_OP_OPEN               := $01
+RIA_OP_CLOSE              := $04
+RIA_OP_READ_XSTACK        := $05
+RIA_OP_READ_XRAM          := $06
+RIA_OP_WRITE_XSTACK       := $08
+RIA_OP_WRITE_XRAM         := $09
+RIA_OP_LSEEK              := $0B
+
 ; 6522 VIA
 VIA             := $FFD0        ; VIA base address
 VIA_PB          := VIA+$0       ; Port register B

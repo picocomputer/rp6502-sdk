@@ -103,7 +103,7 @@ int __fastcall__ read_xstack(void *buf, unsigned count, int fildes);
 int __fastcall__ read_xram(xram_addr buf, unsigned count, int fildes);
 int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes);
 int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes);
-void __fastcall__ ria_xreg(unsigned value, unsigned reg, int devid);
+int __cdecl__ ria_xreg(char device, char channel, unsigned char address, ...);
 unsigned __fastcall__ ria_phi2(void);
 unsigned __fastcall__ ria_codepage(void);
 unsigned long __fastcall__ lrand(void);
