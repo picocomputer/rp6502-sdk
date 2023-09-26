@@ -77,36 +77,34 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 
 #define RIA_OP_EXIT 0xFF
 #define RIA_OP_ZXSTACK 0x00
-#define RIA_OP_XREG 0x10
-#define RIA_OP_PHI2 0x11
-#define RIA_OP_CODEPAGE 0x12
-#define RIA_OP_LRAND 0x13
-
-#define RIA_OP_CLOCK_GETRES 0x20
-#define RIA_OP_CLOCK_GETTIME 0x21
-#define RIA_OP_CLOCK_SETTIME 0x22
-#define RIA_OP_CLOCK_GETTIMEZONE 0x23
-
-#define RIA_OP_OPEN 0x01
-#define RIA_OP_CLOSE 0x04
-#define RIA_OP_READ_XSTACK 0x05
-#define RIA_OP_READ_XRAM 0x06
-#define RIA_OP_WRITE_XSTACK 0x08
-#define RIA_OP_WRITE_XRAM 0x09
-#define RIA_OP_LSEEK 0x0B
+#define RIA_OP_XREG 0x01
+#define RIA_OP_PHI2 0x02
+#define RIA_OP_CODEPAGE 0x03
+#define RIA_OP_LRAND 0x04
+#define RIA_OP_CLOCK_GETRES 0x10
+#define RIA_OP_CLOCK_GETTIME 0x11
+#define RIA_OP_CLOCK_SETTIME 0x12
+#define RIA_OP_CLOCK_GETTIMEZONE 0x13
+#define RIA_OP_OPEN 0x14
+#define RIA_OP_CLOSE 0x15
+#define RIA_OP_READ_XSTACK 0x16
+#define RIA_OP_READ_XRAM 0x17
+#define RIA_OP_WRITE_XSTACK 0x18
+#define RIA_OP_WRITE_XRAM 0x19
+#define RIA_OP_LSEEK 0x1A
 
 /* C API for the operating system. */
 
 typedef unsigned xram_addr;
 
+int __cdecl__ xreg(char device, char channel, unsigned char address, ...);
+unsigned __fastcall__ phi2(void);
+unsigned __fastcall__ codepage(void);
+unsigned long __fastcall__ lrand(void);
 int __fastcall__ read_xstack(void *buf, unsigned count, int fildes);
 int __fastcall__ read_xram(xram_addr buf, unsigned count, int fildes);
 int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes);
 int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes);
-int __cdecl__ ria_xreg(char device, char channel, unsigned char address, ...);
-unsigned __fastcall__ ria_phi2(void);
-unsigned __fastcall__ ria_codepage(void);
-unsigned long __fastcall__ lrand(void);
 
 /* Values in __oserror are the union of these FatFs errors and errno.h */
 

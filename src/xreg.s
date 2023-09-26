@@ -4,17 +4,17 @@
 ; SPDX-License-Identifier: Unlicense
 
 ; CC65 will promote variadic char arguments to int. It will not demote longs.
-; int __cdecl__ ria_xreg(char device, char channel, unsigned char address, ...);
+; int __cdecl__ xreg(char device, char channel, unsigned char address, ...);
 
 .include        "rp6502.inc"
 
-.export		_ria_xreg
+.export		_xreg
 .importzp	sp
 .import		addysp, _ria_call_int_errno
 
 .code
 
-.proc	_ria_xreg
+.proc	_xreg
 
         ; save variadic size in X
         tya
