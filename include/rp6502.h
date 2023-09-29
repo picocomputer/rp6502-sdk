@@ -106,6 +106,62 @@ int __fastcall__ read_xram(xram_addr buf, unsigned count, int fildes);
 int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes);
 int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes);
 
+/* Structures in XRAM. */
+
+#define xram0_struct_set(addr, type, member, val)                  \
+    RIA.addr0 = (uint16_t)(&((type *)0)->member) + (uint16_t)addr; \
+    switch (sizeof(((type *)0)->member))                           \
+    {                                                              \
+    case 1:                                                        \
+        RIA.rw0 = val;                                             \
+        break;                                                     \
+    case 2:                                                        \
+        RIA.step0 = 1;                                             \
+        RIA.rw0 = val & 0xff;                                      \
+        RIA.rw0 = (val >> 8) & 0xff;                               \
+        break;                                                     \
+    case 4:                                                        \
+        RIA.step0 = 1;                                             \
+        RIA.rw0 = (uint32_t)val & 0xff;                            \
+        RIA.rw0 = ((uint32_t)val >> 8) & 0xff;                     \
+        RIA.rw0 = ((uint32_t)val >> 16) & 0xff;                    \
+        RIA.rw0 = ((uint32_t)val >> 24) & 0xff;                    \
+        break;                                                     \
+    }
+
+#define xram1_struct_set(addr, type, member, val)                  \
+    RIA.addr1 = (uint16_t)(&((type *)0)->member) + (uint16_t)addr; \
+    switch (sizeof(((type *)0)->member))                           \
+    {                                                              \
+    case 1:                                                        \
+        RIA.rw1 = val;                                             \
+        break;                                                     \
+    case 2:                                                        \
+        RIA.step1 = 1;                                             \
+        RIA.rw1 = val & 0xff;                                      \
+        RIA.rw1 = (val >> 8) & 0xff;                               \
+        break;                                                     \
+    case 4:                                                        \
+        RIA.step1 = 1;                                             \
+        RIA.rw1 = (uint32_t)val & 0xff;                            \
+        RIA.rw1 = ((uint32_t)val >> 8) & 0xff;                     \
+        RIA.rw1 = ((uint32_t)val >> 16) & 0xff;                    \
+        RIA.rw1 = ((uint32_t)val >> 24) & 0xff;                    \
+        break;                                                     \
+    }
+
+typedef struct
+{
+    unsigned char x_wrap; // bool
+    unsigned char y_wrap; // bool
+    int x_pos_px;
+    int y_pos_px;
+    int width_px;
+    int height_px;
+    unsigned xram_data_ptr;
+    unsigned xram_palette_ptr;
+} vga_mode3_config_t;
+
 /* Values in __oserror are the union of these FatFs errors and errno.h */
 
 typedef enum
