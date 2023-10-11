@@ -187,15 +187,25 @@ class ROM:
         self.binary(0xFFFC, bytearray([addr & 0xFF, addr >> 8]))
 
 
+def str_to_address(parser, str, errmsg):
+    ''' Set reset vector. Use start address of last file as default. '''
+    if (str):
+        str = re.sub('^\$', '0x', str)
+        if (re.match('^($|0x|)[0-9A-Fa-f]*$', str)):
+            return eval(str)
+        else:
+            parser.error("argument %s: invalid address: '%s'" % (errmsg, str))
+
+
 def exec_args():
     parser = argparse.ArgumentParser(
         description='Control RP6502 RIA via UART.')
-    parser.add_argument('command', choices=['run', 'upload'],
-                        help='Run sends to memory. Upload writes a ROM file.')
+    parser.add_argument('command', choices=['run', 'create', 'upload'],
+                        help='Run program. Create an RP6502 ROM. Upload a file.')
     parser.add_argument('filename',
                         help='Raw binary file. e.g. build/hello')
     parser.add_argument('-o', dest='out', metavar='name',
-                        help='Upload destination path/filename.')
+                        help='Destination path/filename.')
     parser.add_argument('-D', '--device', dest='device', metavar='dev',
                         default='/dev/ttyACM0',
                         help='Serial device name. Default=/dev/ttyACM0')
@@ -207,25 +217,35 @@ def exec_args():
                         'the file starting address is used.')
     args = parser.parse_args()
 
-    # Allow $ hex format.
-    if (args.address):
-        address = re.sub('^\$', '0x', args.address)
-        if (re.match('^($|0x|)[0-9A-Fa-f]*$', address)):
-            address = eval(address)
-        else:
-            parser.error(
-                "argument -a/--address: invalid value: '%s'" % args.address)
-        args.address = address
+    # Allow $ hex format
+    args.address = str_to_address(parser, args.address, "-a/--address")
+    args.reset = str_to_address(parser, args.reset, "-r/--reset")
 
+    # Create an executable in RP6502 ROM format
+    if (args.command == 'create'):
+        rom = ROM()
+        rom.binary_file(args.filename, args.address)
+        rom.reset_vector(args.reset)
+        with open(args.out, "wb") as o:
+            rom.seek(0)
+            while True:
+                chunk = rom.read(1024)
+                if len(chunk) == 0:
+                    break
+                o.write(chunk)
+        exit()
+
+    # Establish monitor session
     mon = Monitor(args.device)
     mon.send_break()
 
+    # TODO make this work from a ROM
     if (args.command == 'run'):
         mon.send_file_to_memory(args.filename, args.address)
         mon.send_reset_vector(args.reset)
         mon.reset()
 
-    # TODO Support including a comment file
+    # TODO make this a generic upload
     if (args.command == 'upload'):
         rom = ROM()
         rom.binary_file(args.filename, args.address)
@@ -233,6 +253,8 @@ def exec_args():
         mon.upload(args.out or os.path.basename(args.filename), rom)
 
 
-# This file may be included or run like a program.
+# This file may be included or run like a program. e.g.
+#   import importlib
+#   rp6502 = importlib.import_module("rp6502-sdk.rp6502")
 if __name__ == "__main__":
     exec_args()
