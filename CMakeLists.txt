@@ -40,9 +40,6 @@ target_sources(rp6502 PUBLIC
     src/xreg.s
 )
 
-# Ask CMake to find a suitable python interpreter
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
-
 # Package an executable target as an RP6502 ROM.
 #
 # RP6502 Executables
@@ -75,8 +72,9 @@ function(rp6502_executable name)
         "${CMAKE_CURRENT_BINARY_DIR}/${name}.rp6502"
     )
     # Create new ROM
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
     add_custom_command(TARGET ${name} POST_BUILD
-        COMMAND "${PYTHON_EXECUTABLE}"
+        COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/rp6502-sdk/rp6502.py"
             -a "${start_addr}" -r "${reset_addr}"
             -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.rp6502"
