@@ -95,18 +95,23 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 
 /* C API for the operating system. */
 
-typedef unsigned xram_addr;
-
 int __cdecl__ xreg(char device, char channel, unsigned char address, ...);
 unsigned __fastcall__ phi2(void);
 unsigned __fastcall__ codepage(void);
 unsigned long __fastcall__ lrand(void);
 int __fastcall__ read_xstack(void *buf, unsigned count, int fildes);
-int __fastcall__ read_xram(xram_addr buf, unsigned count, int fildes);
+int __fastcall__ read_xram(unsigned buf, unsigned count, int fildes);
 int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes);
-int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes);
+int __fastcall__ write_xram(unsigned buf, unsigned count, int fildes);
 
-/* Structures in XRAM. */
+/* XREG location helpers */
+
+#define xreg_ria_keyboard(...) xreg(0, 0, 0, __VA_ARGS__)
+#define xreg_ria_mouse(...) xreg(0, 0, 1, __VA_ARGS__)
+#define xreg_vga_canvas(...) xreg(1, 0, 0, __VA_ARGS__)
+#define xreg_vga_mode(...) xreg(1, 0, 1, __VA_ARGS__)
+
+/* XRAM structure helpers */
 
 #define xram0_struct_set(addr, type, member, val)                  \
     RIA.addr0 = (uint16_t)(&((type *)0)->member) + (uint16_t)addr; \

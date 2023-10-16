@@ -7,7 +7,7 @@
 
 #include <rp6502.h>
 
-int __fastcall__ write_xram(xram_addr buf, unsigned count, int fildes)
+int __fastcall__ write_xram(unsigned buf, unsigned count, int fildes)
 {
     ria_push_int(buf);
     ria_push_int(count);
