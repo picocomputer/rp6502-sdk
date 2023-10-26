@@ -167,6 +167,15 @@ typedef struct
     unsigned xram_palette_ptr;
 } vga_mode3_config_t;
 
+typedef struct
+{
+    int x_pos_px;
+    int y_pos_px;
+    unsigned xram_sprite_ptr;
+    unsigned char log_size;
+    unsigned char has_opacity_metadata; // bool
+} vga_mode4_sprite_t;
+
 /* Values in __oserror are the union of these FatFs errors and errno.h */
 
 typedef enum
