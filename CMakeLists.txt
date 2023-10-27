@@ -34,6 +34,8 @@ target_sources(rp6502 PUBLIC
     src/read_xstack.c
     src/read.c
     src/ria.s
+    src/sysremove.c
+    src/sysrename.c
     src/write_xram.c
     src/write_xstack.c
     src/write.c

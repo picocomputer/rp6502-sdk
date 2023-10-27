@@ -92,6 +92,8 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 #define RIA_OP_WRITE_XSTACK 0x18
 #define RIA_OP_WRITE_XRAM 0x19
 #define RIA_OP_LSEEK 0x1A
+#define RIA_OP_UNLINK 0x1B
+#define RIA_OP_RENAME 0x1C
 
 /* C API for the operating system. */
 

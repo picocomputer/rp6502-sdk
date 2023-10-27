@@ -49,6 +49,8 @@ RIA_OP_READ_XRAM          := $17
 RIA_OP_WRITE_XSTACK       := $18
 RIA_OP_WRITE_XRAM         := $19
 RIA_OP_LSEEK              := $1A
+RIA_OP_UNLINK             := $1B
+RIA_OP_RENAME             := $1C
 
 ; 6522 VIA
 VIA             := $FFD0        ; VIA base address
