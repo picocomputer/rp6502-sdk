@@ -17,7 +17,11 @@ target_include_directories(rp6502 PUBLIC
     ${CC65_INCLUDE}
 )
 target_sources(rp6502 PUBLIC
-    src/clock.c
+    src/clock_getres.c
+    src/clock_gettime.c
+    src/clock_gettimezone.c
+    src/clock_gettimespec.c
+    src/clock_settime.c
     src/close.c
     src/codepage.c
     src/crt0.s
