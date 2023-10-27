@@ -178,6 +178,16 @@ typedef struct
     unsigned char has_opacity_metadata; // bool
 } vga_mode4_sprite_t;
 
+typedef struct
+{
+    int transform[6];
+    int x_pos_px;
+    int y_pos_px;
+    unsigned xram_sprite_ptr;
+    unsigned char log_size;
+    unsigned char has_opacity_metadata; // bool
+} vga_mode4_asprite_t;
+
 /* Values in __oserror are the union of these FatFs errors and errno.h */
 
 typedef enum
