@@ -193,6 +193,27 @@ class RP6502:
         self.data = [0 for i in range(0x20000)]
         self.alloc = [0 for i in range(0x20000)]
 
+    def next_rom_data(self, start):
+        for i in range(start, 0x20000):
+            if self.alloc[i]:
+                length = 0
+                while self.alloc[i+length]:
+                    length += 1
+                    if i+length == 0x10000:
+                        break
+                return self.data[i:i+length]
+        return None
+
+    def allocate_rom(self, addr, length):
+        if (addr < 0x10000 and addr+length > 0x10000) or \
+                addr+length > 0x20000 or addr < 0 or length < 0:
+            raise RuntimeError(
+                f"RP6502 invalid address ${addr+i:04X} or length ${length+i:03X}")
+        for i in range(length):
+            if self.alloc[addr + i]:
+                raise RuntimeError(f"RP6502 address conflict at ${addr+i:04X}")
+            self.alloc[addr + i] = 1
+
     def add_help(self, string):
         if len(string) > 80:
             raise RuntimeError("Help line too long")
@@ -200,41 +221,62 @@ class RP6502:
         if len(self.help) > 24:
             raise RuntimeError("Help lines > 24")
 
-    def add_binary(self, data, addr: Union[int, None] = None):
+    def add_binary_bytes(self, data, addr: Union[int, None] = None):
         ''' Binary memory data. addr=None uses first two bytes as address.'''
         offset = 0
         length = len(data)
         if addr == None:
             if length < 2:
-                raise ""
+                raise RuntimeError("No address found.")
             offset += 2
             length -= 2
             addr = data[0] + data[1] * 256
-        if (addr < 0x10000 and addr+length > 0x10000) or addr+length > 0x20000:
-            raise RuntimeError("RP6502 data crossed memory boundary")
+        self.allocate_rom(addr, length)
         for i in range(length):
-            if self.alloc[addr + i]:
-                raise RuntimeError(f"RP6502 data conflict ${addr+i:04X}")
             self.data[addr + i] = data[offset + i]
-            self.alloc[addr + i] = 1
 
-    def load_binary(self, name, addr: Union[int, None] = None):
+    def load_binary_file(self, name, addr: Union[int, None] = None):
         ''' Binary memory data from file. addr=None uses first two bytes as address.'''
         with open(name, 'rb') as f:
             data = f.read()
-        self.add_binary(data, addr)
+        self.add_binary_bytes(data, addr)
 
-    def load_rp6502(self, name):
+    def load_rp6502_file(self, name):
         with open(name, 'rb') as f:
-            while(True):
+            command = f.readline()
+            if not re.match('^#![Rr][Pp]6502\n$', command):
+                raise RuntimeError(f"Invalid RP6502 ROM file: {name}")
+            while True:
                 command = f.readline()
-                if len(command)==0:
+                if len(command) == 0:
                     break
-                se = re.search("[ ]*(# )", command)
-                if (se):
+                se = re.search("^ *(# )", command)
+                if se:
                     self.add_help(command[se.start(1)+2:].rstrip())
                     continue
-        print(f"Loaded ${name}")
+                se = re.search("^ *([^ ]+) *([^ ]+) *([^ ]+) *$", command)
+                if se:
+                    def str_to_address(str):
+                        ''' Set reset vector. Use start address of last file as default. '''
+                        if (str):
+                            str = re.sub('^\$', '0x', str)
+                        if (re.match('^(0x|)[0-9A-Fa-f]*$', str)):
+                            return eval(str)
+                        else:
+                            raise RuntimeError(f"invalid address: {str}")
+                    addr = str_to_address(se.group(1))
+                    length = str_to_address(se.group(2))
+                    crc = str_to_address(se.group(3))
+                    self.allocate_rom(addr, length)
+                    data = f.read(length)
+                    if len(data) != length or crc != binascii.crc32(data):
+                        raise RuntimeError(
+                            f"invalid CRC in block address: ${addr:04X}")
+                    for i in range(length):
+                        self.data[addr + i] = data[i]
+                    continue
+                raise RuntimeError(f"Corrupt RP6502 ROM file: {name}")
+        print(f"Loaded ROM ${name}")
 
 
 # foo = RP6502()
@@ -243,13 +285,15 @@ class RP6502:
 
 def exec_args():
     parser = argparse.ArgumentParser(
-        description='Control RP6502 RIA via UART.')
-    parser.add_argument('command', choices=['run', 'create', 'upload'],
-                        help='Run program. Create an RP6502 ROM. Upload a file.')
-    parser.add_argument('filename',
-                        help='Raw binary file. e.g. build/hello')
+        description='Interface with RP6502 RIA console via UART. Manage RP6502 ROM asset packaging.')
+    parser.add_argument('command', choices=['run', 'upload', 'create'],
+                        help='Run local RP6502 ROM file by sending to RP6502 RAM. '
+                        'Upload any local files to RP6502 USB MSC drive. '
+                        'Create RP6502 ROM file from a local binary file and additional local ROM files. ')
+    parser.add_argument('filename', nargs='*',
+                        help='Local filename(s).')
     parser.add_argument('-o', dest='out', metavar='name',
-                        help='Destination path/filename.')
+                        help='Output path/filename.')
     parser.add_argument('-D', '--device', dest='device', metavar='dev',
                         default='/dev/ttyACM0',
                         help='Serial device name. Default=/dev/ttyACM0')
@@ -258,7 +302,7 @@ def exec_args():
                         'the first two bytes of the file are used.')
     parser.add_argument('-r', '--reset', dest='reset', metavar='addr',
                         help='Reset vector. If not provided, '
-                        'the file starting address is used.')
+                        'use the first address >= $0200.')
     args = parser.parse_args()
 
     # Allow $ hex format
@@ -294,7 +338,7 @@ def exec_args():
 
     # TODO make this work from a ROM
     if (args.command == 'run'):
-        mon.send_file_to_memory(args.filename, args.address)
+        mon.send_file_to_memory(args.filename[0], args.address)
         mon.send_reset_vector(args.reset)
         mon.reset()
 
@@ -303,7 +347,7 @@ def exec_args():
         rom = ROM()
         rom.binary_file(args.filename, args.address)
         rom.reset_vector(args.reset)
-        mon.upload(args.out or os.path.basename(args.filename), rom)
+        mon.upload(args.out or os.path.basename(args.filename[0]), rom)
 
 
 # This file may be included or run like a program. e.g.
