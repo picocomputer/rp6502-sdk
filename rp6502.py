@@ -187,14 +187,58 @@ class ROM:
         self.binary(0xFFFC, bytearray([addr & 0xFF, addr >> 8]))
 
 
-def str_to_address(parser, str, errmsg):
-    ''' Set reset vector. Use start address of last file as default. '''
-    if (str):
-        str = re.sub('^\$', '0x', str)
-        if (re.match('^($|0x|)[0-9A-Fa-f]*$', str)):
-            return eval(str)
-        else:
-            parser.error("argument %s: invalid address: '%s'" % (errmsg, str))
+class RP6502:
+    def __init__(self):
+        self.help = []
+        self.data = [0 for i in range(0x20000)]
+        self.alloc = [0 for i in range(0x20000)]
+
+    def add_help(self, string):
+        if len(string) > 80:
+            raise RuntimeError("Help line too long")
+        self.help.append(string)
+        if len(self.help) > 24:
+            raise RuntimeError("Help lines > 24")
+
+    def add_binary(self, data, addr: Union[int, None] = None):
+        ''' Binary memory data. addr=None uses first two bytes as address.'''
+        offset = 0
+        length = len(data)
+        if addr == None:
+            if length < 2:
+                raise ""
+            offset += 2
+            length -= 2
+            addr = data[0] + data[1] * 256
+        if (addr < 0x10000 and addr+length > 0x10000) or addr+length > 0x20000:
+            raise RuntimeError("RP6502 data crossed memory boundary")
+        for i in range(length):
+            if self.alloc[addr + i]:
+                raise RuntimeError(f"RP6502 data conflict ${addr+i:04X}")
+            self.data[addr + i] = data[offset + i]
+            self.alloc[addr + i] = 1
+
+    def load_binary(self, name, addr: Union[int, None] = None):
+        ''' Binary memory data from file. addr=None uses first two bytes as address.'''
+        with open(name, 'rb') as f:
+            data = f.read()
+        self.add_binary(data, addr)
+
+    def load_rp6502(self, name):
+        with open(name, 'rb') as f:
+            while(True):
+                command = f.readline()
+                if len(command)==0:
+                    break
+                se = re.search("[ ]*(# )", command)
+                if (se):
+                    self.add_help(command[se.start(1)+2:].rstrip())
+                    continue
+        print(f"Loaded ${name}")
+
+
+# foo = RP6502()
+# raise RuntimeError(f"Crossed memory boundary ${12:04X}")
 
 
 def exec_args():
@@ -218,6 +262,15 @@ def exec_args():
     args = parser.parse_args()
 
     # Allow $ hex format
+    def str_to_address(parser, str, errmsg):
+        ''' Set reset vector. Use start address of last file as default. '''
+        if (str):
+            str = re.sub('^\$', '0x', str)
+            if (re.match('^(0x|)[0-9A-Fa-f]*$', str)):
+                return eval(str)
+            else:
+                parser.error("argument %s: invalid address: '%s'" %
+                             (errmsg, str))
     args.address = str_to_address(parser, args.address, "-a/--address")
     args.reset = str_to_address(parser, args.reset, "-r/--reset")
 
