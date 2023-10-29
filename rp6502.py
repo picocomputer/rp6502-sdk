@@ -104,12 +104,17 @@ class Monitor:
 
 
 class ROM:
+    ''' Virtual ROM aka The RP6502 ROM. '''
+
     def __init__(self):
+        ''' ROMs begin with up to a screen of help text '''
+        ''' followed by a sparse array of virtual ROM. '''
         self.help = []
         self.data = [0 for i in range(0x20000)]
         self.alloc = [0 for i in range(0x20000)]
 
     def add_help(self, string):
+        ''' Add help string. '''
         if len(string) > 80:
             raise RuntimeError("Help line too long")
         self.help.append(string)
@@ -199,14 +204,14 @@ class ROM:
 
     def next_rom_data(self, addr: int):
         ''' Find next up-to-1k chunk starting at addr. '''
-        for i in range(addr, 0x20000):
-            if self.alloc[i]:
+        for addr in range(addr, 0x20000):
+            if self.alloc[addr]:
                 length = 0
-                while self.alloc[i+length]:
+                while self.alloc[addr+length]:
                     length += 1
-                    if length == 1024 or i+length == 0x10000:
+                    if length == 1024 or addr+length == 0x10000:
                         break
-                return i, bytearray(self.data[i:i+length])
+                return addr, bytearray(self.data[addr:addr+length])
         return None, None
 
 
@@ -255,13 +260,11 @@ def exec_args():
     args.address = str_to_address(parser, args.address, "-a/--address")
     args.reset = str_to_address(parser, args.reset, "-r/--reset")
 
-    # Shared instances
-    mon = Monitor(args.device)
-    rom = ROM()
-
     # python3 rp6502-sdk/rp6502.py run
     if (args.command == 'run'):
+        rom = ROM()
         rom.add_rp6502_file(args.filename[0])
+        mon = Monitor(args.device)
         mon.send_break()
         mon.send_rom(rom)
         if args.reset != None:
@@ -272,8 +275,9 @@ def exec_args():
         else:
             print("No reset vector. Not resetting.")
 
-    # python3 rp6502-sdk/rp6502.py run
+    # python3 rp6502-sdk/rp6502.py upload
     if (args.command == 'upload'):
+        mon = Monitor(args.device)
         if len(args.filename) > 0:
             mon.send_break()
         for file in args.filename:
@@ -284,9 +288,25 @@ def exec_args():
                     dest = os.path.basename(file)
                 mon.upload(f, dest)
 
-    # python3 rp6502-sdk/rp6502.py run
+    # python3 rp6502-sdk/rp6502.py create
     if (args.command == 'create'):
-        exit()
+        rom = ROM()
+        if args.reset != None:
+            rom.add_reset_vector(args.reset)
+        rom.add_binary_file(args.filename[0], args.address)
+        for file in args.filename[1:]:
+            rom.add_rp6502_file(file)
+        with open(args.out, 'wb+') as file:
+            file.write(b'#!RP6502\n')
+            for help in rom.help:
+                file.write(bytearray(f'# {help}\n', 'ascii'))
+            addr, data = rom.next_rom_data(0)
+            while (data != None):
+                file.write(bytearray(
+                    f'${addr:04X} ${len(data):03X} ${binascii.crc32(data):08X}\n', 'ascii'))
+                file.write(data)
+                addr += len(data)
+                addr, data = rom.next_rom_data(addr)
 
 
 # This file may be included or run like a program. e.g.
