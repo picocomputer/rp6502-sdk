@@ -72,6 +72,7 @@ function(rp6502_executable name)
         list(GET extra_args 1 optional_arg)
         set(reset_addr ${optional_arg})
     endif ()
+    list(SUBLIST extra_args 2 -1 extra_args)
     # Remove old ROM
     add_custom_command(TARGET ${name} PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove
@@ -85,5 +86,34 @@ function(rp6502_executable name)
             -a "${start_addr}" -r "${reset_addr}"
             -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.rp6502"
             create "${CMAKE_CURRENT_BINARY_DIR}/${name}"
+            -- ${extra_args}
         DEPENDS ${name})
+endfunction()
+
+# Package anything as an RP6502 ROM.
+function(rp6502_asset name addr in_file)
+    # Parse optional args
+    get_filename_component(out_file ${in_file} NAME_WLE)
+    set(custom_target_name "${name}.${addr}.${out_file}.rp6502")
+    set(extra_args ${ARGN})
+    list(LENGTH extra_args extra_count)
+    if (${extra_count} GREATER 0)
+        list(GET ${ARGN} 0 optional_arg)
+        get_filename_component(out_file ${optional_arg} NAME_WLE)
+    endif ()
+    add_custom_target(
+        ${custom_target_name} ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
+    )
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${in_file}
+        COMMAND
+            "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/rp6502-sdk/rp6502.py"
+            -a "${addr}"
+            -o "${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502"
+            create "${CMAKE_CURRENT_SOURCE_DIR}/${in_file}"
+    )
 endfunction()

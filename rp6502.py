@@ -8,7 +8,6 @@
 # Control RP6502 RIA via UART
 
 import os
-import io
 import re
 import time
 import serial
@@ -19,11 +18,13 @@ from typing import Union
 
 
 class Monitor:
+    ''' Manages the monitor application on the serial console. '''
+
     DEFAULT_TIMEOUT = 0.5
     UART_BAUDRATE = 115200
-    serial = serial.Serial()
 
     def __init__(self, name, timeout=DEFAULT_TIMEOUT):
+        self.serial = serial.Serial()
         self.serial.setPort(name)
         self.serial.timeout = timeout
         self.serial.baudrate = self.UART_BAUDRATE
@@ -42,7 +43,7 @@ class Monitor:
 
     def command(self, str, timeout=DEFAULT_TIMEOUT):
         ''' Send one command and wait for next monitor prompt '''
-        self.serial.write(bytes(str, 'utf-8'))
+        self.serial.write(bytes(str, 'ascii'))
         self.serial.write(b'\r')
         self.wait_for_prompt(']', timeout)
 
@@ -58,47 +59,33 @@ class Monitor:
         self.serial.write(data)
         self.wait_for_prompt(']')
 
-    def upload(self, name, data):
-        ''' Upload readable (file,rom,etc) to remote file "name" '''
-        self.serial.write(bytes(f'UPLOAD {name}\r', 'utf-8'))
+    def upload(self, file, name):
+        ''' Upload readable file to remote file "name" '''
+        self.serial.write(bytes(f'UPLOAD {name}\r', 'ascii'))
         self.wait_for_prompt('}')
-        data.seek(0)
+        file.seek(0)
         while True:
-            chunk = data.read(1024)
+            chunk = file.read(1024)
             if len(chunk) == 0:
                 break
             command = f'${len(chunk):03X} ${binascii.crc32(chunk):08X}\r'
-            self.serial.write(bytes(command, 'utf-8'))
+            self.serial.write(bytes(command, 'ascii'))
             self.serial.write(chunk)
             self.wait_for_prompt('}')
         self.serial.write(b'END\r')
         self.wait_for_prompt(']')
 
-    def send_reset_vector(self, addr: Union[int, None] = None):
-        ''' Set reset vector. Use start address of last file as default. '''
-        if addr == None:
-            addr = self.reset_vector_guess
-        if addr == None:
-            raise RuntimeError("Reset vector not set")
-        self.binary(0xFFFC, bytearray([addr & 0xFF, addr >> 8]))
-
-    def send_file_to_memory(self, name, addr: Union[int, None] = None):
-        ''' Send binary file. addr=None uses first two bytes as address.'''
-        with open(name, 'rb') as f:
-            if addr == None:
-                data = f.read(2)
-                addr = data[0] + data[1] * 256
-            self.reset_vector_guess = addr
-            while True:
-                data = f.read(1024)
-                if len(data) == 0:
-                    break
-                self.binary(addr, data)
-                addr += len(data)
+    def send_rom(self, rom):
+        ''' Send rom. '''
+        addr, data = rom.next_rom_data(0)
+        while (data != None):
+            self.binary(addr, data)
+            addr += len(data)
+            addr, data = rom.next_rom_data(addr)
 
     def wait_for_prompt(self, prompt, timeout=DEFAULT_TIMEOUT):
         ''' Wait for prompt. '''
-        prompt = bytes(prompt, 'utf-8')
+        prompt = bytes(prompt, 'ascii')
         start = time.monotonic()
         while True:
             if len(prompt) == 1:
@@ -106,8 +93,8 @@ class Monitor:
             else:
                 data = self.serial.read_until()
             if data[0:1] == b'?':
-                monitor_result = data.decode('utf-8')
-                monitor_result += self.serial.read_until().decode('utf-8').strip()
+                monitor_result = data.decode('ascii')
+                monitor_result += self.serial.read_until().decode('ascii').strip()
                 raise RuntimeError(monitor_result)
             if data == prompt:
                 break
@@ -115,142 +102,211 @@ class Monitor:
                 if time.monotonic() - start > timeout:
                     raise TimeoutError()
 
-    def basic_command(self, str, timeout=DEFAULT_TIMEOUT):
-        ''' Send one line using "0\b" faux flow control. '''
-        self.serial.write(b'0')
-        start = time.monotonic()
-        while True:
-            r = self.serial.read()
-            if r == b'\x00':  # huh, zeros?
-                continue
-            if r == b'0':
-                break
-            if time.monotonic() - start > timeout:
-                raise TimeoutError()
-        self.serial.write(b'\b')
-        self.serial.write(bytes(str, 'utf-8'))
-        self.serial.write(b'\r')
-        self.serial.read_until()
-
-    def basic_wait_for_ready(self, timeout=DEFAULT_TIMEOUT):
-        ''' Wait for BASIC Ready. '''
-        self.wait_for_prompt('Ready\r\n', timeout)
-
 
 class ROM:
+    ''' Virtual ROM aka The RP6502 ROM. '''
+
     def __init__(self):
-        self.out = io.BytesIO(b'')
-        # Shebang.
-        self.out.write(b"#!RP6502\n")
+        ''' ROMs begin with up to a screen of help text '''
+        ''' followed by a sparse array of virtual ROM. '''
+        self.help = []
+        self.data = [0 for i in range(0x20000)]
+        self.alloc = [0 for i in range(0x20000)]
 
-    def seek(self, pos: int) -> int:
-        return self.out.seek(pos)
+    def add_help(self, string):
+        ''' Add help string. '''
+        if len(string) > 80:
+            raise RuntimeError("Help line too long")
+        self.help.append(string)
+        if len(self.help) > 24:
+            raise RuntimeError("Help lines > 24")
 
-    def read(self, size: Union[int, None]) -> bytes:
-        return self.out.read(size)
-
-    def comment(self, str):
-        ''' Comments before binary data are used for help and info. '''
-        self.out.write(b'# ')
-        self.out.write(bytes(str, 'utf-8'))
-        self.out.write(b'\n')
-
-    def binary(self, addr, data):
-        ''' Binary memory data. '''
-        command = f'${addr:04X} ${len(data):03X} ${binascii.crc32(data):08X}\n'
-        self.out.write(bytes(command, 'utf-8'))
-        self.out.write(data)
-
-    def binary_file(self, name, addr: Union[int, None] = None):
-        ''' Binary memory data from file. addr=None uses first two bytes as address.'''
-        with open(name, 'rb') as f:
-            data = f.read()
-        pos = 0
+    def add_binary_data(self, data, addr: Union[int, None] = None):
+        ''' Add binary data. addr=None uses first two bytes as address.'''
+        offset = 0
+        length = len(data)
         if addr == None:
-            pos += 2
+            if length < 2:
+                raise RuntimeError("No address found.")
+            offset += 2
+            length -= 2
             addr = data[0] + data[1] * 256
-        self.reset_vector_guess = addr
-        while pos < len(data):
-            size = len(data) - pos
-            if size > 1024:
-                size = 1024
-            self.binary(addr, data[pos:pos+size])
-            addr += size
-            pos += size
+        self.allocate_rom(addr, length)
+        for i in range(length):
+            self.data[addr + i] = data[offset + i]
 
-    def reset_vector(self, addr: Union[int, None] = None):
-        ''' Set reset vector. Use start address of last file as default. '''
-        if addr == None:
-            addr = self.reset_vector_guess
-        if addr == None:
-            raise RuntimeError("Reset vector not set")
-        self.binary(0xFFFC, bytearray([addr & 0xFF, addr >> 8]))
+    def add_reset_vector(self, addr: int):
+        ''' Set reset vector in $FFFC and $FFFD. '''
+        if (addr < 0 or addr > 0xFFFF):
+            raise RuntimeError(f"Invalid reset vector: ${addr:04X}")
+        self.allocate_rom(0xFFFC, 2)
+        self.data[0xFFFC] = addr & 0xFF
+        self.data[0xFFFD] = addr >> 8
 
+    def add_binary_file(self, file, addr: Union[int, None] = None):
+        ''' Add binary memory data from file. addr=None uses first two bytes as address. '''
+        with open(file, 'rb') as f:
+            data = f.read()
+        self.add_binary_data(data, addr)
 
-def str_to_address(parser, str, errmsg):
-    ''' Set reset vector. Use start address of last file as default. '''
-    if (str):
-        str = re.sub('^\$', '0x', str)
-        if (re.match('^($|0x|)[0-9A-Fa-f]*$', str)):
-            return eval(str)
-        else:
-            parser.error("argument %s: invalid address: '%s'" % (errmsg, str))
+    def add_rp6502_file(self, file):
+        ''' Add RP6502 ROM data from file. '''
+        with open(file, 'rb') as f:
+            command = f.readline().decode('ascii')
+            if not re.match('^#![Rr][Pp]6502\n$', command):
+                raise RuntimeError(f"Invalid RP6502 ROM file: {file}")
+            while True:
+                command = f.readline().decode('ascii')
+                if len(command) == 0:
+                    break
+                se = re.search("^ *(# )", command)
+                if se:
+                    self.add_help(command[se.start(1)+2:].rstrip())
+                    continue
+                se = re.search("^ *([^ ]+) *([^ ]+) *([^ ]+) *$", command)
+                if se:
+                    def str_to_address(str):
+                        ''' Supports $FFFF number format. '''
+                        if (str):
+                            str = re.sub('^\$', '0x', str)
+                        if (re.match('^(0x|)[0-9A-Fa-f]*$', str)):
+                            return eval(str)
+                        else:
+                            raise RuntimeError(f"invalid address: {str}")
+                    addr = str_to_address(se.group(1))
+                    length = str_to_address(se.group(2))
+                    crc = str_to_address(se.group(3))
+                    self.allocate_rom(addr, length)
+                    data = f.read(length)
+                    if len(data) != length or crc != binascii.crc32(data):
+                        raise RuntimeError(
+                            f"invalid CRC in block address: ${addr:04X}")
+                    for i in range(length):
+                        self.data[addr + i] = data[i]
+                    continue
+                raise RuntimeError(f"Corrupt RP6502 ROM file: {file}")
+        print(f"Loaded ROM {file}")
+
+    def allocate_rom(self, addr, length):
+        ''' Marks a range of memory as used. Raises on error. '''
+        if (addr < 0x10000 and addr+length > 0x10000) or \
+                addr+length > 0x20000 or addr < 0 or length < 0:
+            raise IndexError(
+                f"RP6502 invalid address ${addr+i:04X} or length ${length+i:03X}")
+        for i in range(length):
+            if self.alloc[addr + i]:
+                raise MemoryError(f"RP6502 address conflict at ${addr+i:04X}")
+            self.alloc[addr + i] = 1
+
+    def has_reset_vector(self):
+        ''' Returns true if $FFFC and $FFFD have been set. '''
+        return self.alloc[0xFFFC] and self.alloc[0xFFFD]
+
+    def next_rom_data(self, addr: int):
+        ''' Find next up-to-1k chunk starting at addr. '''
+        for addr in range(addr, 0x20000):
+            if self.alloc[addr]:
+                length = 0
+                while self.alloc[addr+length]:
+                    length += 1
+                    if length == 1024 or addr+length == 0x10000:
+                        break
+                return addr, bytearray(self.data[addr:addr+length])
+        return None, None
 
 
 def exec_args():
+
+    # Give a hint at where the USB CDC mounts on various OSs
+    if platform.system() == "Windows":
+        default_device = 'COM1'
+    elif platform.system() == "Darwin":
+        default_device = '/dev/tty.usbmodem'
+    elif platform.system() == "Linux":
+        default_device = '/dev/ttyACM0'
+    else:
+        default_device = '/dev/tty'
+
+    # Standard library argument parser
     parser = argparse.ArgumentParser(
-        description='Control RP6502 RIA via UART.')
-    parser.add_argument('command', choices=['run', 'create', 'upload'],
-                        help='Run program. Create an RP6502 ROM. Upload a file.')
-    parser.add_argument('filename',
-                        help='Raw binary file. e.g. build/hello')
+        description='Interface with RP6502 RIA console via UART. Manage RP6502 ROM asset packaging.')
+    parser.add_argument('command', choices=['run', 'upload', 'create'],
+                        help='Run local RP6502 ROM file by sending to RP6502 RAM. '
+                        'Upload any local files to RP6502 USB MSC drive. '
+                        'Create RP6502 ROM file from a local binary file and additional local ROM files. ')
+    parser.add_argument('filename', nargs='*',
+                        help='Local filename(s).')
     parser.add_argument('-o', dest='out', metavar='name',
-                        help='Destination path/filename.')
+                        help='Output path/filename.')
     parser.add_argument('-D', '--device', dest='device', metavar='dev',
-                        default='/dev/ttyACM0',
-                        help='Serial device name. Default=/dev/ttyACM0')
+                        default=default_device,
+                        help=f'Serial device name. Default={default_device}')
     parser.add_argument('-a', '--address', dest='address', metavar='addr',
                         help='Starting address of file. If not provided, '
                         'the first two bytes of the file are used.')
     parser.add_argument('-r', '--reset', dest='reset', metavar='addr',
-                        help='Reset vector. If not provided, '
-                        'the file starting address is used.')
+                        help='Reset vector.')
     args = parser.parse_args()
 
-    # Allow $ hex format
+    # Additional validation and conversion
+    def str_to_address(parser, str, errmsg):
+        ''' Supports $FFFF number format. '''
+        if (str):
+            str = re.sub('^\$', '0x', str)
+            if (re.match('^(0x|)[0-9A-Fa-f]*$', str)):
+                return eval(str)
+            else:
+                parser.error(f"argument {errmsg}: invalid address: '{str}'")
     args.address = str_to_address(parser, args.address, "-a/--address")
     args.reset = str_to_address(parser, args.reset, "-r/--reset")
 
-    # Create an executable in RP6502 ROM format
+    # python3 rp6502-sdk/rp6502.py run
+    if (args.command == 'run'):
+        rom = ROM()
+        rom.add_rp6502_file(args.filename[0])
+        mon = Monitor(args.device)
+        mon.send_break()
+        mon.send_rom(rom)
+        if args.reset != None:
+            rom.add_reset_vector(args.reset)
+            mon.reset()
+        if rom.has_reset_vector():
+            mon.reset()
+        else:
+            print("No reset vector. Not resetting.")
+
+    # python3 rp6502-sdk/rp6502.py upload
+    if (args.command == 'upload'):
+        mon = Monitor(args.device)
+        if len(args.filename) > 0:
+            mon.send_break()
+        for file in args.filename:
+            with open(file, 'rb') as f:
+                if len(args.filename) == 1 and args.out != None:
+                    dest = args.out
+                else:
+                    dest = os.path.basename(file)
+                mon.upload(f, dest)
+
+    # python3 rp6502-sdk/rp6502.py create
     if (args.command == 'create'):
         rom = ROM()
-        rom.binary_file(args.filename, args.address)
-        rom.reset_vector(args.reset)
-        with open(args.out, "wb") as o:
-            rom.seek(0)
-            while True:
-                chunk = rom.read(1024)
-                if len(chunk) == 0:
-                    break
-                o.write(chunk)
-        exit()
-
-    # Establish monitor session
-    mon = Monitor(args.device)
-    mon.send_break()
-
-    # TODO make this work from a ROM
-    if (args.command == 'run'):
-        mon.send_file_to_memory(args.filename, args.address)
-        mon.send_reset_vector(args.reset)
-        mon.reset()
-
-    # TODO make this a generic upload
-    if (args.command == 'upload'):
-        rom = ROM()
-        rom.binary_file(args.filename, args.address)
-        rom.reset_vector(args.reset)
-        mon.upload(args.out or os.path.basename(args.filename), rom)
+        if args.reset != None:
+            rom.add_reset_vector(args.reset)
+        rom.add_binary_file(args.filename[0], args.address)
+        for file in args.filename[1:]:
+            rom.add_rp6502_file(file)
+        with open(args.out, 'wb+') as file:
+            file.write(b'#!RP6502\n')
+            for help in rom.help:
+                file.write(bytes(f'# {help}\n', 'ascii'))
+            addr, data = rom.next_rom_data(0)
+            while (data != None):
+                file.write(
+                    bytes(f'${addr:04X} ${len(data):03X} ${binascii.crc32(data):08X}\n', 'ascii'))
+                file.write(data)
+                addr += len(data)
+                addr, data = rom.next_rom_data(addr)
 
 
 # This file may be included or run like a program. e.g.
