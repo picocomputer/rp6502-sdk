@@ -197,7 +197,8 @@ class ROM:
                 f"RP6502 invalid address ${addr+i:04X} or length ${length+i:03X}")
         for i in range(length):
             if self.alloc[addr + i]:
-                raise MemoryError(f"RP6502 address conflict at ${addr+i:04X}")
+                raise MemoryError(
+                    f"RP6502 ROM data already exists at ${addr+i:04X}")
             self.alloc[addr + i] = 1
 
     def has_reset_vector(self):
@@ -266,12 +267,11 @@ def exec_args():
     if (args.command == 'run'):
         rom = ROM()
         rom.add_rp6502_file(args.filename[0])
+        if args.reset != None:
+            rom.add_reset_vector(args.reset)
         mon = Monitor(args.device)
         mon.send_break()
         mon.send_rom(rom)
-        if args.reset != None:
-            rom.add_reset_vector(args.reset)
-            mon.reset()
         if rom.has_reset_vector():
             mon.reset()
         else:
