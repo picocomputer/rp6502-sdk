@@ -86,7 +86,7 @@ function(rp6502_executable name)
             -a "${start_addr}" -r "${reset_addr}"
             -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.rp6502"
             create "${CMAKE_CURRENT_BINARY_DIR}/${name}"
-            ${extra_args}
+            -- ${extra_args}
         DEPENDS ${name})
 endfunction()
 
@@ -94,6 +94,7 @@ endfunction()
 function(rp6502_asset name addr in_file)
     # Parse optional args
     get_filename_component(out_file ${in_file} NAME_WLE)
+    set(custom_target_name "${name}.${addr}.${out_file}.rp6502")
     set(extra_args ${ARGN})
     list(LENGTH extra_args extra_count)
     if (${extra_count} GREATER 0)
@@ -101,7 +102,7 @@ function(rp6502_asset name addr in_file)
         get_filename_component(out_file ${optional_arg} NAME_WLE)
     endif ()
     add_custom_target(
-        Name ALL
+        ${custom_target_name} ALL
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
     )
     find_package(Python3 REQUIRED COMPONENTS Interpreter)

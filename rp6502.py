@@ -43,7 +43,7 @@ class Monitor:
 
     def command(self, str, timeout=DEFAULT_TIMEOUT):
         ''' Send one command and wait for next monitor prompt '''
-        self.serial.write(bytes(str, 'utf-8'))
+        self.serial.write(bytes(str, 'ascii'))
         self.serial.write(b'\r')
         self.wait_for_prompt(']', timeout)
 
@@ -61,7 +61,7 @@ class Monitor:
 
     def upload(self, file, name):
         ''' Upload readable file to remote file "name" '''
-        self.serial.write(bytes(f'UPLOAD {name}\r', 'utf-8'))
+        self.serial.write(bytes(f'UPLOAD {name}\r', 'ascii'))
         self.wait_for_prompt('}')
         file.seek(0)
         while True:
@@ -69,7 +69,7 @@ class Monitor:
             if len(chunk) == 0:
                 break
             command = f'${len(chunk):03X} ${binascii.crc32(chunk):08X}\r'
-            self.serial.write(bytes(command, 'utf-8'))
+            self.serial.write(bytes(command, 'ascii'))
             self.serial.write(chunk)
             self.wait_for_prompt('}')
         self.serial.write(b'END\r')
@@ -85,7 +85,7 @@ class Monitor:
 
     def wait_for_prompt(self, prompt, timeout=DEFAULT_TIMEOUT):
         ''' Wait for prompt. '''
-        prompt = bytes(prompt, 'utf-8')
+        prompt = bytes(prompt, 'ascii')
         start = time.monotonic()
         while True:
             if len(prompt) == 1:
@@ -299,11 +299,11 @@ def exec_args():
         with open(args.out, 'wb+') as file:
             file.write(b'#!RP6502\n')
             for help in rom.help:
-                file.write(bytearray(f'# {help}\n', 'ascii'))
+                file.write(bytes(f'# {help}\n', 'ascii'))
             addr, data = rom.next_rom_data(0)
             while (data != None):
-                file.write(bytearray(
-                    f'${addr:04X} ${len(data):03X} ${binascii.crc32(data):08X}\n', 'ascii'))
+                file.write(
+                    bytes(f'${addr:04X} ${len(data):03X} ${binascii.crc32(data):08X}\n', 'ascii'))
                 file.write(data)
                 addr += len(data)
                 addr, data = rom.next_rom_data(addr)

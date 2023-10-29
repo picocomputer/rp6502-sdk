@@ -116,7 +116,7 @@ int __fastcall__ write_xram(unsigned buf, unsigned count, int fildes);
 /* XRAM structure helpers */
 
 #define xram0_struct_set(addr, type, member, val)                  \
-    RIA.addr0 = (uint16_t)(&((type *)0)->member) + (uint16_t)addr; \
+    RIA.addr0 = (unsigned)(&((type *)0)->member) + (unsigned)addr; \
     switch (sizeof(((type *)0)->member))                           \
     {                                                              \
     case 1:                                                        \
@@ -129,15 +129,15 @@ int __fastcall__ write_xram(unsigned buf, unsigned count, int fildes);
         break;                                                     \
     case 4:                                                        \
         RIA.step0 = 1;                                             \
-        RIA.rw0 = (uint32_t)val & 0xff;                            \
-        RIA.rw0 = ((uint32_t)val >> 8) & 0xff;                     \
-        RIA.rw0 = ((uint32_t)val >> 16) & 0xff;                    \
-        RIA.rw0 = ((uint32_t)val >> 24) & 0xff;                    \
+        RIA.rw0 = (unsigned long)val & 0xff;                       \
+        RIA.rw0 = ((unsigned long)val >> 8) & 0xff;                \
+        RIA.rw0 = ((unsigned long)val >> 16) & 0xff;               \
+        RIA.rw0 = ((unsigned long)val >> 24) & 0xff;               \
         break;                                                     \
     }
 
 #define xram1_struct_set(addr, type, member, val)                  \
-    RIA.addr1 = (uint16_t)(&((type *)0)->member) + (uint16_t)addr; \
+    RIA.addr1 = (unsigned)(&((type *)0)->member) + (unsigned)addr; \
     switch (sizeof(((type *)0)->member))                           \
     {                                                              \
     case 1:                                                        \
@@ -150,10 +150,10 @@ int __fastcall__ write_xram(unsigned buf, unsigned count, int fildes);
         break;                                                     \
     case 4:                                                        \
         RIA.step1 = 1;                                             \
-        RIA.rw1 = (uint32_t)val & 0xff;                            \
-        RIA.rw1 = ((uint32_t)val >> 8) & 0xff;                     \
-        RIA.rw1 = ((uint32_t)val >> 16) & 0xff;                    \
-        RIA.rw1 = ((uint32_t)val >> 24) & 0xff;                    \
+        RIA.rw1 = (unsigned long)val & 0xff;                       \
+        RIA.rw1 = ((unsigned long)val >> 8) & 0xff;                \
+        RIA.rw1 = ((unsigned long)val >> 16) & 0xff;               \
+        RIA.rw1 = ((unsigned long)val >> 24) & 0xff;               \
         break;                                                     \
     }
 
