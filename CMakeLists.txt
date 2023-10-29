@@ -87,3 +87,30 @@ function(rp6502_executable name)
             create "${CMAKE_CURRENT_BINARY_DIR}/${name}"
         DEPENDS ${name})
 endfunction()
+
+# Package anything as an RP6502 ROM.
+function(rp6502_asset name addr in_file)
+    # Parse optional args
+    get_filename_component(out_file ${in_file} NAME_WLE)
+    set(extra_args ${ARGN})
+    list(LENGTH extra_args extra_count)
+    if (${extra_count} GREATER 0)
+        list(GET ${ARGN} 0 optional_arg)
+        get_filename_component(out_file ${optional_arg} NAME_WLE)
+    endif ()
+    add_custom_target(
+        Name ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
+    )
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${in_file}
+        COMMAND
+            "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/rp6502-sdk/rp6502.py"
+            -a "${addr}"
+            -o "${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502"
+            create "${CMAKE_CURRENT_SOURCE_DIR}/${in_file}"
+    )
+endfunction()
