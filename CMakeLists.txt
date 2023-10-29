@@ -72,6 +72,7 @@ function(rp6502_executable name)
         list(GET extra_args 1 optional_arg)
         set(reset_addr ${optional_arg})
     endif ()
+    list(SUBLIST extra_args 2 -1 extra_args)
     # Remove old ROM
     add_custom_command(TARGET ${name} PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove
@@ -85,6 +86,7 @@ function(rp6502_executable name)
             -a "${start_addr}" -r "${reset_addr}"
             -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.rp6502"
             create "${CMAKE_CURRENT_BINARY_DIR}/${name}"
+            ${extra_args}
         DEPENDS ${name})
 endfunction()
 
