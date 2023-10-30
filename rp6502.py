@@ -30,7 +30,7 @@ class Monitor:
         self.serial.baudrate = self.UART_BAUDRATE
         self.serial.open()
 
-    def send_break(self, duration=0.01):
+    def send_break(self, duration=0.01, retries=1):
         ''' Stop the 6502 and return to monitor. '''
         self.serial.read_all()
         if platform.system() == "Darwin":
@@ -39,7 +39,12 @@ class Monitor:
             self.serial.baudrate = self.UART_BAUDRATE
         else:
             self.serial.send_break(duration)
-        self.wait_for_prompt(']')
+        try:
+            self.wait_for_prompt(']')
+        except TimeoutError as te:
+            if (retries <= 0):
+                raise te
+            self.send_break(duration, retries-1)
 
     def command(self, str, timeout=DEFAULT_TIMEOUT):
         ''' Send one command and wait for next monitor prompt '''

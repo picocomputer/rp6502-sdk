@@ -163,6 +163,32 @@ typedef struct
     unsigned char y_wrap; // bool
     int x_pos_px;
     int y_pos_px;
+    int width_chars;
+    int height_chars;
+    unsigned xram_data_ptr;
+    unsigned xram_palette_ptr;
+    unsigned xram_font_ptr;
+} vga_mode1_config_t;
+
+typedef struct
+{
+    unsigned char x_wrap; // bool
+    unsigned char y_wrap; // bool
+    int x_pos_px;
+    int y_pos_px;
+    int width_tiles;
+    int height_tiles;
+    unsigned xram_data_ptr;
+    unsigned xram_palette_ptr;
+    unsigned xram_tile_ptr;
+} vga_mode2_config_t;
+
+typedef struct
+{
+    unsigned char x_wrap; // bool
+    unsigned char y_wrap; // bool
+    int x_pos_px;
+    int y_pos_px;
     int width_px;
     int height_px;
     unsigned xram_data_ptr;
