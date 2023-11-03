@@ -46,33 +46,40 @@ target_sources(rp6502 PUBLIC
     src/xreg.s
 )
 
-# Package an executable target as an RP6502 ROM.
+# Package a CC65 executable target as an RP6502 ROM.
 #
 # RP6502 Executables
 # ^^^^^^^^^^^^^^^^^^
 #
-#  rp6502_executable(<name> [start_addr] [reset_addr])
+#  rp6502_executable(<name> START [addr] RESET [addr] roms...)
 #
 # Packages an executable target called ``<name>`` in RP6502 ROM format.
-# ``<start_addr>`` defaults to 0x200.
-# ``<reset_addr>`` defaults to ``<start_addr>``.
+# ``START <addr>`` defaults to 0x200.
+# ``RESET <addr>`` defaults to 0x200.
 #
 function(rp6502_executable name)
-    # Parse optional args
+    # Parse args
     set(start_addr "0x200")
-    set(reset_addr ${start_addr})
-    set(extra_args ${ARGN})
-    list(LENGTH extra_args extra_count)
-    if (${extra_count} GREATER 0)
-        list(GET extra_args 0 optional_arg)
-        set(start_addr ${optional_arg})
-        set(reset_addr ${start_addr})
-    endif ()
-    if (${extra_count} GREATER 1)
-        list(GET extra_args 1 optional_arg)
-        set(reset_addr ${optional_arg})
-    endif ()
-    list(SUBLIST extra_args 2 -1 extra_args)
+    set(reset_addr "0x200")
+    set(extra_roms)
+    foreach(X IN LISTS ARGN)
+        if (NOT start_addr)
+            set(start_addr ${X})
+        elseif (NOT reset_addr)
+            set(reset_addr ${X})
+        elseif (X STREQUAL "START")
+            set(start_addr FALSE)
+        elseif (X STREQUAL "RESET")
+            set(reset_addr FALSE)
+        else ()
+            list(APPEND extra_roms ${X})
+        endif()
+    endforeach()
+    if (NOT start_addr)
+        message (FATAL_ERROR "rp6502_executable START address missing")
+    elseif (NOT reset_addr)
+        message (FATAL_ERROR "rp6502_executable RESET address missing")
+    endif()
     # Remove old ROM
     add_custom_command(TARGET ${name} PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove
@@ -86,34 +93,34 @@ function(rp6502_executable name)
             -a "${start_addr}" -r "${reset_addr}"
             -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.rp6502"
             create "${CMAKE_CURRENT_BINARY_DIR}/${name}"
-            -- ${extra_args}
+            -- ${extra_roms}
         DEPENDS ${name})
 endfunction()
 
 # Package anything as an RP6502 ROM.
 function(rp6502_asset name addr in_file)
     # Parse optional args
-    get_filename_component(out_file ${in_file} NAME_WLE)
-    set(custom_target_name "${name}.${addr}.${out_file}.rp6502")
+    get_filename_component(out_file ${in_file} NAME)
+    set(out_file "${out_file}.rp6502")
+    set(custom_target_name "${name}.${addr}.${out_file}")
     set(extra_args ${ARGN})
     list(LENGTH extra_args extra_count)
     if (${extra_count} GREATER 0)
-        list(GET ${ARGN} 0 optional_arg)
-        get_filename_component(out_file ${optional_arg} NAME_WLE)
+        list(GET ${ARGN} 0 out_file)
     endif ()
     add_custom_target(
         ${custom_target_name} ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${out_file}
     )
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
     add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${out_file}
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${in_file}
         COMMAND
             "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/rp6502-sdk/rp6502.py"
             -a "${addr}"
-            -o "${CMAKE_CURRENT_BINARY_DIR}/${out_file}.rp6502"
+            -o "${CMAKE_CURRENT_BINARY_DIR}/${out_file}"
             create "${CMAKE_CURRENT_SOURCE_DIR}/${in_file}"
     )
 endfunction()
