@@ -13,6 +13,7 @@ import time
 import serial
 import binascii
 import argparse
+import configparser
 import platform
 from typing import Union
 
@@ -41,10 +42,11 @@ class Monitor:
             self.serial.send_break(duration)
         try:
             self.wait_for_prompt(']')
+            return
         except TimeoutError as te:
             if (retries <= 0):
                 raise te
-            self.send_break(duration, retries-1)
+        self.send_break(duration, retries-1)
 
     def command(self, str, timeout=DEFAULT_TIMEOUT):
         ''' Send one command and wait for next monitor prompt '''
@@ -179,7 +181,7 @@ class ROM:
                         if (re.match('^(0x|)[0-9A-Fa-f]*$', str)):
                             return eval(str)
                         else:
-                            raise RuntimeError(f"invalid address: {str}")
+                            raise RuntimeError(f"Invalid address: {str}")
                     addr = str_to_address(se.group(1))
                     length = str_to_address(se.group(2))
                     crc = str_to_address(se.group(3))
@@ -187,12 +189,11 @@ class ROM:
                     data = f.read(length)
                     if len(data) != length or crc != binascii.crc32(data):
                         raise RuntimeError(
-                            f"invalid CRC in block address: ${addr:04X}")
+                            f"Invalid CRC in block address: ${addr:04X}")
                     for i in range(length):
                         self.data[addr + i] = data[i]
                     continue
                 raise RuntimeError(f"Corrupt RP6502 ROM file: {file}")
-        print(f"Loaded ROM {file}")
 
     def allocate_rom(self, addr, length):
         ''' Marks a range of memory as used. Raises on error. '''
@@ -246,6 +247,8 @@ def exec_args():
                         help='Local filename(s).')
     parser.add_argument('-o', dest='out', metavar='name',
                         help='Output path/filename.')
+    parser.add_argument('-c', '--config', dest='config', metavar='name',
+                        help=f'Configuration file for serial device.')
     parser.add_argument('-D', '--device', dest='device', metavar='dev',
                         default=default_device,
                         help=f'Serial device name. Default={default_device}')
@@ -255,6 +258,17 @@ def exec_args():
     parser.add_argument('-r', '--reset', dest='reset', metavar='addr',
                         help='Reset vector.')
     args = parser.parse_args()
+
+    # Standard library configuration parser
+    if (args.config):
+        config = configparser.ConfigParser()
+        if not os.path.exists(args.config):
+            config['RP6502'] = {'device': args.device}
+            config.write(open(args.config, 'w'))
+        else:
+            config.read(args.config)
+        if config.has_section('RP6502'):
+            args.device = config['RP6502'].get('device', args.device)
 
     # Additional validation and conversion
     def str_to_address(parser, str, errmsg):
@@ -270,10 +284,12 @@ def exec_args():
 
     # python3 rp6502-sdk/rp6502.py run
     if (args.command == 'run'):
+        print(f"[{os.path.basename(__file__)}] Loading ROM {args.filename[0]}")
         rom = ROM()
         rom.add_rp6502_file(args.filename[0])
         if args.reset != None:
             rom.add_reset_vector(args.reset)
+        print(f"[{os.path.basename(__file__)}] Opening device {args.device}")
         mon = Monitor(args.device)
         mon.send_break()
         mon.send_rom(rom)
@@ -284,10 +300,12 @@ def exec_args():
 
     # python3 rp6502-sdk/rp6502.py upload
     if (args.command == 'upload'):
+        print(f"[{os.path.basename(__file__)}] Opening device {args.device}")
         mon = Monitor(args.device)
         if len(args.filename) > 0:
             mon.send_break()
         for file in args.filename:
+            print(f"[{os.path.basename(__file__)}] Uploading {file}")
             with open(file, 'rb') as f:
                 if len(args.filename) == 1 and args.out != None:
                     dest = args.out
@@ -297,11 +315,14 @@ def exec_args():
 
     # python3 rp6502-sdk/rp6502.py create
     if (args.command == 'create'):
+        print(f"[{os.path.basename(__file__)}] Creating {args.out}")
         rom = ROM()
         if args.reset != None:
             rom.add_reset_vector(args.reset)
+        print(f"[{os.path.basename(__file__)}] Adding Binary Asset {args.filename[0]}")
         rom.add_binary_file(args.filename[0], args.address)
         for file in args.filename[1:]:
+            print(f"[{os.path.basename(__file__)}] Adding ROM Asset {file}")
             rom.add_rp6502_file(file)
         with open(args.out, 'wb+') as file:
             file.write(b'#!RP6502\n')
