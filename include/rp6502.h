@@ -98,9 +98,9 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 /* C API for the operating system. */
 
 int __cdecl__ xreg(char device, char channel, unsigned char address, ...);
-unsigned __fastcall__ phi2(void);
-unsigned __fastcall__ codepage(void);
-unsigned long __fastcall__ lrand(void);
+int __fastcall__ phi2(void);
+int __fastcall__ codepage(void);
+long __fastcall__ lrand(void);
 int __fastcall__ read_xstack(void *buf, unsigned count, int fildes);
 int __fastcall__ read_xram(unsigned buf, unsigned count, int fildes);
 int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes);

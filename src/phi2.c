@@ -7,7 +7,7 @@
 
 #include <rp6502.h>
 
-unsigned __fastcall__ phi2(void)
+int __fastcall__ phi2(void)
 {
     return ria_call_int(RIA_OP_PHI2);
 }

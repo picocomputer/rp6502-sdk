@@ -7,7 +7,7 @@
 
 #include <rp6502.h>
 
-unsigned __fastcall__ codepage(void)
+int __fastcall__ codepage(void)
 {
     return ria_call_int(RIA_OP_CODEPAGE);
 }
