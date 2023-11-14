@@ -31,7 +31,7 @@ struct __RP6502
     unsigned char errno_lo;
     unsigned char errno_hi;
     unsigned char op;
-    const unsigned char nop;
+    unsigned char irq;
     const unsigned char spin;
     const unsigned char busy;
     const unsigned char lda;

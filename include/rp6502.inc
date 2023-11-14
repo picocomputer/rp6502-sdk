@@ -25,6 +25,7 @@ RIA_ADDR1       := $FFEA
 RIA_XSTACK      := $FFEC
 RIA_ERRNO       := $FFED
 RIA_OP          := $FFEF
+RIA_IRQ         := $FFF0
 RIA_SPIN        := $FFF1
 RIA_BUSY        := $FFF2 ; Bit $80
 RIA_A           := $FFF4

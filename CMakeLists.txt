@@ -26,6 +26,7 @@ target_sources(rp6502 PUBLIC
     src/codepage.c
     src/crt0.s
     src/initenv.s
+    src/irq.s
     src/lrand.c
     src/lseek.c
     src/mainargs.s
