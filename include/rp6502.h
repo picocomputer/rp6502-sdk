@@ -81,6 +81,7 @@ long __fastcall__ ria_call_long_errno(unsigned char op);
 #define RIA_OP_PHI2 0x02
 #define RIA_OP_CODEPAGE 0x03
 #define RIA_OP_LRAND 0x04
+#define RIA_OP_STDIN_OPT 0x05
 #define RIA_OP_CLOCK_GETRES 0x10
 #define RIA_OP_CLOCK_GETTIME 0x11
 #define RIA_OP_CLOCK_SETTIME 0x12
@@ -101,6 +102,7 @@ int __cdecl__ xreg(char device, char channel, unsigned char address, ...);
 int __fastcall__ phi2(void);
 int __fastcall__ codepage(void);
 long __fastcall__ lrand(void);
+int __fastcall__ stdin_opt(unsigned long ctrl_bits, unsigned char str_length);
 int __fastcall__ read_xstack(void *buf, unsigned count, int fildes);
 int __fastcall__ read_xram(unsigned buf, unsigned count, int fildes);
 int __fastcall__ write_xstack(const void *buf, unsigned count, int fildes);

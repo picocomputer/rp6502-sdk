@@ -3,13 +3,13 @@
 ; SPDX-License-Identifier: BSD-3-Clause
 ; SPDX-License-Identifier: Unlicense
 
-.constructor    initmainargs, 24
-.import         __argc, __argv
+.constructor initmainargs, 24
+.import __argc, __argv
 
-.segment        "ONCE"
+.segment "ONCE"
 
-.proc   initmainargs
+.proc initmainargs
 
-        rts
+    rts
 
 .endproc

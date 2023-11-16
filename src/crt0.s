@@ -5,19 +5,20 @@
 
 ; Boilerplate crt0.s
 
-.export   _init, _exit
-.import   _main
+.export _init, _exit
+.import _main
 
-.export   __STARTUP__ : absolute = 1
-.import   __RAM_START__, __RAM_SIZE__
+.export __STARTUP__ : absolute = 1
+.import __RAM_START__, __RAM_SIZE__
 
-.import    copydata, zerobss, initlib, donelib
+.import copydata, zerobss, initlib, donelib
 
-.include  "rp6502.inc"
-.include  "zeropage.inc"
+.include "rp6502.inc"
+.include "zeropage.inc"
+
+.segment  "STARTUP"
 
 ; Essential 6502 startup the CPU doesn't do
-.segment  "STARTUP"
 _init:
     LDX #$FF
     TXS

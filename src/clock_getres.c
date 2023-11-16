@@ -6,7 +6,7 @@
  */
 
 #include <rp6502.h>
-#include <clock.h>
+#include <time.h>
 
 extern int _clock_gettimespec(struct timespec *ts, unsigned char op);
 

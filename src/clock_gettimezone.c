@@ -6,7 +6,7 @@
  */
 
 #include <rp6502.h>
-#include <clock.h>
+#include <time.h>
 
 int clock_gettimezone(clockid_t clock_id, struct _timezone *tz)
 {

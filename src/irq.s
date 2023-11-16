@@ -11,8 +11,8 @@
 .segment "ONCE"
 
 initirq:
-    LDA #<IRQStub
-    LDX #>IRQStub
+    LDA #<handler
+    LDX #>handler
     SEI
     STA $FFFE
     STX $FFFF
@@ -27,7 +27,7 @@ doneirq:
 
 .segment "LOWCODE"
 
-IRQStub:
+handler:
     CLD
     PHX
     TSX

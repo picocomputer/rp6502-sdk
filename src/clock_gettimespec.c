@@ -6,7 +6,7 @@
  */
 
 #include <rp6502.h>
-#include <clock.h>
+#include <time.h>
 
 // Internal method shared by clock_getres and clock_gettime.
 int _clock_gettimespec(struct timespec *ts, unsigned char op)

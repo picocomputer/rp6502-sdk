@@ -6,6 +6,7 @@
  */
 
 #include <rp6502.h>
+#include <unistd.h>
 
 int __fastcall__ read(int fildes, void *buf, unsigned count)
 {

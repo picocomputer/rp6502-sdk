@@ -6,6 +6,7 @@
  */
 
 #include <rp6502.h>
+#include <unistd.h>
 
 int __fastcall__ write(int fildes, const void *buf, unsigned count)
 {
