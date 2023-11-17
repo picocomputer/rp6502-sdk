@@ -39,6 +39,7 @@ RIA_OP_XREG               := $01
 RIA_OP_PHI2               := $02
 RIA_OP_CODEPAGE           := $03
 RIA_OP_LRAND              := $04
+RIA_OP_STDIN_OPT          := $05
 RIA_OP_CLOCK_GETRES       := $10
 RIA_OP_CLOCK_GETTIME      := $11
 RIA_OP_CLOCK_SETTIME      := $12

@@ -11,40 +11,40 @@
 .segment "ONCE"
 
 initirq:
-    LDA #<handler
-    LDX #>handler
-    SEI
-    STA $FFFE
-    STX $FFFF
-    CLI
-    RTS
+    lda #<handler
+    ldx #>handler
+    sei
+    sta $FFFE
+    stx $FFFF
+    cli
+    rts
 
 .code
 
 doneirq:
-    SEI
-    RTS
+    sei
+    rts
 
 .segment "LOWCODE"
 
 handler:
-    CLD
-    PHX
-    TSX
-    PHA
-    INX
-    INX
-    LDA $100,X
-    AND #$10
-    BNE break
-    PHY
-    JSR callirq
-    PLY
-    PLA
-    PLX
-    RTI
+    cld
+    phx
+    tsx
+    pha
+    inx
+    inx
+    lda $100,X
+    and #$10
+    bne break
+    phy
+    jsr callirq
+    ply
+    pla
+    plx
+    rti
 
 break:
-    LDA #$FF
-    STA RIA_A
-    JMP _exit
+    lda #$FF
+    sta RIA_A
+    jmp _exit

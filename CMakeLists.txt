@@ -17,14 +17,13 @@ target_include_directories(rp6502 PUBLIC
     ${CC65_INCLUDE}
 )
 target_sources(rp6502 PUBLIC
-    src/clock_getres.c
-    src/clock_gettime.c
-    src/clock_gettimezone.c
-    src/clock_gettimespec.c
-    src/clock_settime.c
     src/close.c
     src/codepage.c
     src/crt0.s
+    src/getres.c
+    src/gettime.c
+    src/gettimezone.c
+    src/gettimespec.c
     src/initenv.s
     src/irq.s
     src/lrand.c
@@ -39,6 +38,7 @@ target_sources(rp6502 PUBLIC
     src/read_xstack.c
     src/read.c
     src/ria.s
+    src/settime.c
     src/stdin_opt.c
     src/sysremove.c
     src/sysrename.c

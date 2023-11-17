@@ -8,8 +8,8 @@
 #include <rp6502.h>
 #include <time.h>
 
-// Internal method shared by clock_getres and clock_gettime.
-int _clock_gettimespec(struct timespec *ts, unsigned char op)
+int __clock_gettimespec(struct timespec *ts, unsigned char op)
+/* Internal method shared by clock_getres and clock_gettime. */
 {
     int ax = ria_call_int_errno(op);
     if (ax >= 0)
