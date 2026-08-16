@@ -46,7 +46,7 @@ Windows:
  * For VS Code: `winget install -e --id Microsoft.VisualStudioCode`
 
 ### Getting Started:
-Go to the [GitHub template](https://github.com/picocomputer/vscode-cc65) and
+Go to the [GitHub template](https://github.com/picocomputer/rp6502-sdk) and
 select "Use this template" then "Create a new repository". GitHub will create
 a clean project for you to start with. Then you can clone the repository.
 
@@ -72,7 +72,10 @@ That leaves a ROM at `build/cc65/debug/hello.rp6502`.
 
 In VS Code, open the folder and install the recommended extensions when
 prompted. From the CMake side panel, select Configure:cc65/Debug and press
-Build instead of typing the commands.
+Build instead of typing the commands. The
+[RP6502-SDK](https://picocomputer.github.io/sdk.html) documentation walks
+through the VS Code side step by step, along with assets, linker
+configuration, and packaging.
 
 ### Running it:
 `tools/rp6502.py` sends a ROM to a Picocomputer and gives you its console. It
@@ -128,9 +131,11 @@ configurations:
  * **RP6502 (Hardware)** builds your project and runs it on a Picocomputer 6502.
    Connect with telnet or a USB cable plugged into the RP6502-VGA USB port.
 
-Both read `.rp6502` in the project root, which is created the first time you
-"Start Debugging" and is ignored by git. It holds the same settings the
-command line takes as flags:
+### The .rp6502 file:
+Both launch configurations read `.rp6502` in the project root. It is created
+the first time you "Start Debugging" and is ignored by git, because it
+describes your machine rather than your project. It holds the same settings
+the command line takes as flags:
 
 ```ini
 [RP6502][Launch]
@@ -142,13 +147,21 @@ args =
 term = True
 ```
 
-For the emulator, `emulator` is filled in with the full path to the one the
-tools fetched. A bare `rp6502-emu` there instead means the fetch had nothing
-for this machine, and the name is searched on your PATH. For hardware, set
-`device` to the serial port.
-If you get a Python error about the communications device not being found,
-that is the setting to edit. You may also connect over telnet by giving a
-hostname for the device and setting the key.
+ * `emulator` is the full path to the one the tools fetched. A bare
+   `rp6502-emu` there instead means the fetch had nothing for this machine,
+   and the name is searched on your PATH.
+ * `device` is the serial port your Picocomputer appears on, or a hostname to
+   reach it over telnet. **This is the one you will edit.** If you get a
+   Python error about the communications device not being found, this is why.
+ * `key` is the passkey when the device is a telnet host.
+ * `workdir` is a remote directory to work in.
+ * `args` are passed to your ROM as its arguments. A launch configuration
+   carrying its own arguments overrides these.
+ * `term` attaches a console terminal when running on hardware.
+
+The emulator keeps its debugger window layout in the same file, so a project
+remembers where you left its windows. The two halves pass each other through
+untouched.
 
 Edit `CMakeLists.txt` to add new source and asset files. From here on, it's
 standard C/C++/assembly development for the 6502 platform.
@@ -201,6 +214,10 @@ projects called `rp6502_executable()` with the address their compiler happened
 to use, and `DATA default RESET default` works under both.
 
 ### Documentation:
+ * [RP6502-SDK](https://picocomputer.github.io/sdk.html) - this project, in VS
+   Code, with assets and linker configuration
+ * [RP6502-EMU](https://picocomputer.github.io/emu.html) - the emulator and its
+   debugger
  * [Picocomputer](https://picocomputer.github.io)
  * [CC65](https://cc65.github.io/)
  * [LLVM-MOS](https://llvm-mos.org/)
