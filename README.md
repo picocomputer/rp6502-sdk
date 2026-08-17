@@ -42,9 +42,15 @@ Windows:
  * Install Python by typing `python3` in a command prompt, which will launch
    the Microsoft Store where you can start the installation. If Python runs,
    this has already been done - exit Python with Ctrl-Z plus Enter.
- * For VS Code: `winget install -e --id Microsoft.VisualStudioCode`
 
-### Getting Started:
+### Getting started:
+**The documentation is [RP6502-SDK](https://picocomputer.github.io/sdk.html).**
+It covers VS Code, assets, linker configuration, and packaging in full.
+The remainder of this README is a quick start guide for someone already
+familiar with the tools.
+
+
+### Use the template:
 Go to the [GitHub template](https://github.com/picocomputer/rp6502-sdk) and
 select "Use this template" then "Create a new repository". GitHub will create
 a clean project for you to start with. Then you can clone the repository.
@@ -54,14 +60,10 @@ $ git clone [path_to_github]
 $ cd [to_where_it_cloned]
 ```
 
-TODO send vs code users to new sdk docs page picocomputer.github.io/sdk.html and focus below on cli use and remove the vs code stuff. this file should be mainly some commands to guide CLI users around the system and not full docs. new sdk docs should be comprehensive, this should be a local reminder.
-
-### Choosing a compiler and building:
-The choice is a CMake preset. There is a Debug and a Release of each compiler,
+### Building:
+The compiler is a CMake preset. There is a Debug and a Release of each,
 building into its own directory under `build/`, so you can switch back and
-forth without a rebuild from scratch. Debugging needs a Debug build, because
-that is the one carrying the information a debugger uses to stop on a line of
-your source.
+forth without a rebuild from scratch. Debugging needs a Debug build.
 
 ```bash
 $ cmake --list-presets
@@ -69,18 +71,12 @@ $ cmake --preset cc65/Debug
 $ cmake --build --preset cc65/Debug
 ```
 
-That leaves a ROM at `build/cc65/debug/hello.rp6502`.
+That leaves a ROM at `build/cc65/debug/hello.rp6502`. The first configure
+fetches `tools/` and the emulator; nothing is fetched after that.
 
-In VS Code, open the folder and install the recommended extensions when
-prompted. From the CMake side panel, select Configure:cc65/Debug and press
-Build instead of typing the commands. The
-[RP6502-SDK](https://picocomputer.github.io/sdk.html) documentation walks
-through the VS Code side step by step, along with assets, linker
-configuration, and packaging.
-
-### Running it:
-`tools/rp6502.py` sends a ROM to a Picocomputer and gives you its console. It
-needs nothing but Python. Debugging hardware (F5) from VS Code does this for you.
+### Running:
+`tools/rp6502.py` sends a ROM to a Picocomputer and gives you its console.
+It needs nothing but Python.
 
 ```bash
 $ python3 tools/rp6502.py run build/cc65/debug/hello.rp6502
@@ -89,15 +85,9 @@ $ python3 tools/rp6502.py run build/cc65/debug/hello.rp6502
 That uploads the ROM, starts it, and attaches a terminal. Ctrl-A then X exits,
 Ctrl-A then B sends a break. Other commands:
 
-```bash
-$ python3 tools/rp6502.py term                 # console terminal, nothing else
-$ python3 tools/rp6502.py upload file...       # copy files to USB storage
-$ python3 tools/rp6502.py --help
-```
-
 The device defaults to the USB serial port where the Picocomputer usually
 mounts: `/dev/ttyACM0` on Linux, `/dev/cu.usbmodem*` on macOS, `COM1` on
-Windows. Override it with `-d`, and connect over telnet by giving a hostname
+Windows. Override it with `-d`, or connect over telnet by giving a hostname
 plus the passkey:
 
 ```bash
@@ -105,92 +95,17 @@ $ python3 tools/rp6502.py -d /dev/ttyUSB0 run build/cc65/debug/hello.rp6502
 $ python3 tools/rp6502.py -d picocomputer.local -k mykey term
 ```
 
-To run without hardware, pass the ROM to the emulator:
-
-```bash
-$ tools/rp6502-emu build/cc65/debug/hello.rp6502
-```
-
-The emulator came down with the tools on the first configure. On Windows, and
-under WSL, it is `tools/rp6502-emu.exe`.
-
-### Debugging:
-The emulator is a DAP debug adapter, so any editor that speaks the Debug
-Adapter Protocol can do source-level debugging of 6502 code. It finds the
-debug information beside the ROM, so `program` is the only thing your launch
-configuration has to name.
-
-```bash
-$ tools/rp6502-emu --dap
-```
-
-In VS Code this is already wired up. "Start Debugging" (F5) offers two
-configurations:
-
- * **RP6502 (Emulator)** is the default. It builds your project and runs it with
-   source-level debugging in the rp6502 emulator.
- * **RP6502 (Hardware)** builds your project and runs it on a Picocomputer 6502.
-   Connect with telnet or a USB cable plugged into the RP6502-VGA USB port.
-
-### The .rp6502 file:
-Both launch configurations read `.rp6502` in the project root. It is created
-the first time you "Start Debugging" and is ignored by git, because it
-describes your machine rather than your project. It holds the same settings
-the command line takes as flags:
-
-```ini
-[RP6502][Launch]
-emulator = /home/you/hello/tools/rp6502-emu
-device = /dev/ttyACM0
-key =
-workdir =
-args =
-term = True
-```
-
- * `emulator` is the full path to the one the tools fetched. A bare
-   `rp6502-emu` there instead means the fetch had nothing for this machine,
-   and the name is searched on your PATH.
- * `device` is the serial port your Picocomputer appears on, or a hostname to
-   reach it over telnet. **This is the one you will edit.** If you get a
-   Python error about the communications device not being found, this is why.
- * `key` is the passkey when the device is a telnet host.
- * `workdir` is a remote directory to work in.
- * `args` are passed to your ROM as its arguments. A launch configuration
-   carrying its own arguments overrides these.
- * `term` attaches a console terminal when running on hardware.
-
-The emulator keeps its debugger window layout in the same file, so a project
-remembers where you left its windows. The two halves pass each other through
-untouched.
-
-Edit `CMakeLists.txt` to add new source and asset files. From here on, it's
-standard C/C++/assembly development for the 6502 platform.
-
 ### The tools directory:
-`tools/` holds the ROM packager, the CMake commands your project calls, and
-the cc65 toolchain file. A new project starts with only a small script that
-goes and gets them from
-[picocomputer/rp6502](https://github.com/picocomputer/rp6502) on the first
-configure. They are ordinary files in your repository after that, so commit
-them along with everything else.
-
-The emulator for your machine comes down at the same time and into the same
-directory. That is a binary which may not work for other devs, so
-it is in `.gitignore` instead of your commits. Under WSL you get the Windows
-emulator, which reaches the GPU and the sound card through interop, plus the
-Linux build beside it for running by hand.
+`tools/` holds the python and CMake scripts which drive the SDK.
+A new project downloads them the first time you configure with CMake.
+The emulator for your machine comes down at the same time and into the
+same directory.
 
 To pull down the current versions:
 
 ```bash
 $ cmake -P tools/rp6502.cmake
 ```
-
-VS Code has this as the "RP6502: update tools" task. Either way the result is
-a diff you can read before you commit it. Nothing is fetched behind your back:
-configuring a project that already has its tools never goes to the network,
-and a tool you delete stays deleted.
 
 ### Updating an older project:
 Projects made before this template merged cc65 and llvm-mos have their compiler
