@@ -22,15 +22,14 @@ alike; only the assembler directives differ.
    [LLVM-MOS](https://llvm-mos.org/wiki/Welcome). Install both if you want to
    try both; nothing here makes you choose once.
 
-VS Code is strongly recommended and this project is set up for it, but it is
-not required. Everything works from a command line and any editor, which the
-sections below cover.
+CC65 needs a source build. LLVM-MOS has its own installer. Do not use the
+CC65 or LLVM-MOS from a package manager, we need the latest version you
+can tolerate. The other requirements aren't as version sensitive.
 
 Linux:
 ```bash
 $ sudo apt install cmake python3 git build-essential
 ```
-CC65 needs a source build. LLVM-MOS has its own installer.
 
 Windows:
  * `winget install -e --id Git.Git`
@@ -54,6 +53,8 @@ a clean project for you to start with. Then you can clone the repository.
 $ git clone [path_to_github]
 $ cd [to_where_it_cloned]
 ```
+
+TODO send vs code users to new sdk docs page picocomputer.github.io/sdk.html and focus below on cli use and remove the vs code stuff. this file should be mainly some commands to guide CLI users around the system and not full docs. new sdk docs should be comprehensive, this should be a local reminder.
 
 ### Choosing a compiler and building:
 The choice is a CMake preset. There is a Debug and a Release of each compiler,
