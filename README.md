@@ -79,7 +79,7 @@ configuration, and packaging.
 
 ### Running it:
 `tools/rp6502.py` sends a ROM to a Picocomputer and gives you its console. It
-needs nothing but Python.
+needs nothing but Python. Debugging hardware (F5) from VS Code does this for you.
 
 ```bash
 $ python3 tools/rp6502.py run build/cc65/debug/hello.rp6502
@@ -214,10 +214,6 @@ projects called `rp6502_executable()` with the address their compiler happened
 to use, and `DATA default RESET default` works under both.
 
 ### Documentation:
- * [RP6502-SDK](https://picocomputer.github.io/sdk.html) - this project, in VS
-   Code, with assets and linker configuration
- * [RP6502-EMU](https://picocomputer.github.io/emu.html) - the emulator and its
-   debugger
  * [Picocomputer](https://picocomputer.github.io)
  * [CC65](https://cc65.github.io/)
  * [LLVM-MOS](https://llvm-mos.org/)
