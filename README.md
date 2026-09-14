@@ -43,12 +43,29 @@ Windows:
    the Microsoft Store where you can start the installation. If Python runs,
    this has already been done - exit Python with Ctrl-Z plus Enter.
 
+You must also lock the generator to makefiles or ninja. This is only necessary
+for Windows. We're still looking for a better solution. Open
+`CMakePresets.json` and add a `generator` line to the `base` preset:
+
+```json
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+```
+
+If you configured before you made this change, delete the `build` directory.
+In VS Code, you can run "CMake: Delete Cache and Reconfigure" instead.
+
 ### Getting started:
 **The documentation is [RP6502-SDK](https://picocomputer.github.io/sdk.html).**
 It covers VS Code, assets, linker configuration, and packaging in full.
 The remainder of this README is a quick start guide for someone already
 familiar with the tools.
-
 
 ### Use the template:
 Go to the [GitHub template](https://github.com/picocomputer/rp6502-sdk) and
