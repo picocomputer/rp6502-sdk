@@ -5,7 +5,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/tools/rp6502.cmake)
 project(MY-RP6502-PROJECT C CXX ASM)
 
 add_executable(hello)
-rp6502_xram(src/xram.h "XRAM_.*")
+rp6502_map(hello src/xram.h "XRAM_.*")
 rp6502_asset(hello help src/help.txt)
 rp6502_executable(hello DATA default RESET default)
 target_sources(hello PRIVATE
