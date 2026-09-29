@@ -14,7 +14,7 @@
 typedef struct
 {
     int foo;
-} xram_feature_t;
+} xram_feature_t; /* layout */
 
 /* Insert XRAM structs from those snippets here along with */
 /* your own custom usage to define your XRAM memory map. */
