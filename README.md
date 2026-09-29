@@ -36,6 +36,9 @@ publish: hello.zip
 -->
 [![Hello, world!](https://picocomputer.github.io/rp6502-sdk/hello/screenshot.png)](https://picocomputer.github.io/rp6502-sdk/hello/)
 
+[Run it in your browser](https://picocomputer.github.io/rp6502-sdk/hello/),
+BASIC is usable. Type `10` then TAB to edit line 10. `RUN` to run.
+
 On each push to `main`, `.github/workflows/web.yml` publishes this web
 player and its screenshot to GitHub Pages. The `preset` in the `rp6502`
 comment above the picture sets the program it plays: `basic` for the
