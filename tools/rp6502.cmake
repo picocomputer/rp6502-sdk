@@ -4,7 +4,7 @@
 #
 # Update with:  cmake -P tools/rp6502.cmake
 
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.28)
 
 set(RP6502_TOOLS_REPO "picocomputer/rp6502")
 set(RP6502_TOOLS_REF "main")

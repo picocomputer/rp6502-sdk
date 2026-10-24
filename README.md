@@ -52,7 +52,7 @@ and files you do not use. Set the `preset` in the `rp6502` comment to a
 preset you keep.
 
 ### Requirements:
- * CMake 3.21 or newer
+ * CMake 3.28 or newer
  * Python 3
  * Make or Ninja
  * [cc65 or llvm-mos](https://github.com/picocomputer?view_as=public), for
@@ -88,7 +88,7 @@ fetches everything, and the toolchain it replaces comes back as
 Then replace everything above `project()` with:
 
 ```cmake
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.28)
 
 include(${CMAKE_CURRENT_LIST_DIR}/tools/rp6502.cmake)
 ```
